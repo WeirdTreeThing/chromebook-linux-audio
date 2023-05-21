@@ -61,8 +61,6 @@ def path_exists(path_str: str) -> bool:
 def cpdir(src_as_str: str, dst_as_string: str) -> None:  # dst_dir must be a full path, including the new dir name
     def copy_files(src: Path, dst: Path) -> None:
         # create dst dir if it doesn't exist
-        if verbose:
-            print(f"Copying {src} to {dst}")
         mkdir(dst.absolute().as_posix(), create_parents=True)
         for src_file in src.iterdir():
             if src_file.is_file():
@@ -95,8 +93,6 @@ def cpdir(src_as_str: str, dst_as_string: str) -> None:  # dst_dir must be a ful
 def cpfile(src_as_str: str, dst_as_str: str) -> None:  # "/etc/resolv.conf", "/var/some_config/resolv.conf"
     src_as_path = Path(src_as_str)
     dst_as_path = Path(dst_as_str)
-    if verbose:
-        print(f"Copying {src_as_path.absolute().as_posix()} to {dst_as_path.absolute().as_posix()}")
     if src_as_path.exists():
         dst_as_path.write_bytes(src_as_path.read_bytes())
     else:
@@ -111,8 +107,6 @@ def cpfile(src_as_str: str, dst_as_str: str) -> None:  # "/etc/resolv.conf", "/v
 def bash(command: str) -> str:
     try:
         output = subprocess.check_output(command, shell=True, text=True).strip()
-        if verbose:
-            print(output, flush=True)
         return output
     except:
         print(f"failed to run command: {command}")

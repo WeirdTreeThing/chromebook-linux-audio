@@ -9,8 +9,6 @@ from functions import *
 # parse arguments from the cli. Only for testing/advanced use.
 def process_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False,
-                        help="Print more output")
     parser.add_argument("-b", dest="board_name", type=str, nargs=1, default=[""],
                         help="Override board name.")
     parser.add_argument("--enable-debug", action='store_const', const="Enabling", dest="debug",
@@ -298,7 +296,7 @@ if __name__ == "__main__":
     if os.geteuid() != 0:
         # save username
         with open("/tmp/username", "w") as file:
-            file.write(bash("whoami").strip())
+            file.write(os.getlogin())
 
         # restart script as root
         # make the two people that use doas happy
@@ -312,10 +310,6 @@ if __name__ == "__main__":
     # read username
     with open("/tmp/username", "r") as file:
         user_id = file.read()
-
-    if args.verbose:
-        print_warning("Verbosity increased")
-        set_verbose(args.verbose)
 
     # Important message
     print_warning("WARNING: this audio script is not fully functional yet!")
