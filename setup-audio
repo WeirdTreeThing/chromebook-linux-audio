@@ -60,6 +60,7 @@ def avs_audio(board, username):
 
     # Copy ucms
     print_status("Installing UCM configuration")
+    rmdir("/tmp/chromebook-ucm-conf")
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
     cpdir("/tmp/chromebook-ucm-conf/avs", "/usr/share/alsa/ucm2/conf.d/")
 
@@ -176,6 +177,7 @@ def sof_audio(platform):
     cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
     
     print_status("Installing UCM configuration")
+    rmdir("/tmp/chromebook-ucm-conf")
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
     match platform:
         case "apl":
