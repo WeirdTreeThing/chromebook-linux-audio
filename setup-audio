@@ -224,7 +224,9 @@ def bsw_audio():
 
 
 def zen2_audio(username):
-    print_status("Ryzen audio support comming soon")
+    cpdir("/tmp/chromebook-ucm-conf/amd/acp3xalc5682m98", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682m98")
+    cpdir("/tmp/chromebook-ucm-conf/amd/acp3xalc5682101", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
+    print_status("After rebooting you will need to set speakers as the output device in sound settings.")
 
 
 # Rammus and Nocturne needs firmware blobs from ChromeOS
