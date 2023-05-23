@@ -155,3 +155,25 @@ def install_package(arch_package: str = "", deb_package: str = "", rpm_package: 
         bash(f"dnf install -y {rpm_package}")
     else:
         print_error(f"Unknown package manager! Please install {deb_package} using your package manager.")
+
+
+#######################################################################################
+#                            FILE DOWNLOAD FUNCTION                                   #
+#######################################################################################
+def download_file(url: str, path: str) -> None:
+    # start monitor in a separate thread
+    if no_download_progress:  # for non-interactive shells only
+        # start download
+        urlretrieve(url=url, filename=path)
+        return
+
+    # get total file size from server
+    total_file_size = int(urlopen(url).headers["Content-Length"])
+    Thread(target=_print_download_progress, args=(Path(path), total_file_size,), daemon=True).start()
+
+    # start download
+    urlretrieve(url=url, filename=path)
+
+    # stop monitor
+    open(".stop_download_progress", "a").close()
+    print("\n", end="")
