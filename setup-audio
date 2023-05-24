@@ -223,9 +223,17 @@ def bsw_audio():
     cpfile("conf/sof/bsw-sof.conf", "/etc/modprobe.d/bsw-sof.conf")
 
 
-def zen2_audio(username):
-    cpdir("/tmp/chromebook-ucm-conf/amd/acp3xalc5682m98", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682m98")
-    cpdir("/tmp/chromebook-ucm-conf/amd/acp3xalc5682101", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
+def amd_audio(amd_platform):
+    # amd_platform is an int that represents the generation
+    # 0 = stoneyridge (grunt)
+    # 1 = picasso/zen2 (zork)
+    # 2 = cezanne/zen3 (guybrush)
+    match amd_platform:
+        case 0:
+            cpdir("/tmp/chromebook-ucm-conf/stoney/acpd7219m98357", "/usr/share/alsa/ucm2/conf.d/acpd7219m98357")
+        case 1:
+            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682m98", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682m98")
+            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682101", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
     print_status("After rebooting you will need to set speakers as the output device in sound settings.")
 
 
@@ -337,11 +345,12 @@ if __name__ == "__main__":
                 apl_audio(device_board, user_id)
             case "glk" | "cml" | "jsl" | "tgl" | "adl":
                 sof_audio(boards[device_board])
-            case "str":
-                print_error("Stoneyridge is not supported!")
-                exit(0)
-            case "zen2":
-                zen2_audio(user_id)
+            case "stoney":
+                amd_audio(0)
+            case "picasso":
+                amd_audio(1)
+            case "cezanne":
+                amd_audio(2)
             case _:
                 print_error(f"Unknown/Unsupported chromebook model: {device_board}")
                 exit(1)
