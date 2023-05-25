@@ -234,6 +234,8 @@ def amd_audio(amd_platform):
         case 1:
             cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682m98", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682m98")
             cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682101", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
+        case 2:
+            cpdir("/tmp/chromebook-ucm-conf/cezanne/sof-rt5682s-rt1", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-rt1")
     print_status("After rebooting you will need to set speakers as the output device in sound settings.")
 
 
