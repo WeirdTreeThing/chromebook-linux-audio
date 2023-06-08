@@ -51,7 +51,7 @@ def avs_audio(board, username):
 
             user_input = input(
                 'Type "I Understand my speakers will not work since my device has max98357a!" in all caps to continue: ')
-            while user_input != "I UNDERSTAND MY SPEAKERS WILL NOT WORK IF MY DEVICE HAS MAX98357A!":
+            while user_input != "I UNDERSTAND MY SPEAKERS WILL NOT WORK SINCE MY DEVICE HAS MAX98357A!":
                 user_input = input(
                     'Type "I Understand my speakers will not work since my device has max98357a!" in all caps to continue: ')
             override_avs = False
