@@ -217,7 +217,7 @@ def bsw_audio():
         print_status("Done, please reboot for changes to take effect.")
         exit()
 
-    print_status("Fixing braswell/baytrail audio")
+    print_status("Fixing braswell/baytrail/broadwell audio")
     install_package("alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm-conf")
     install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
     cpfile("conf/sof/bsw-sof.conf", "/etc/modprobe.d/bsw-sof.conf")
@@ -339,6 +339,8 @@ if __name__ == "__main__":
 
     try:
         match boards[device_board]:
+            case "bdw":
+                bsw_audio()
             case "byt" | "bsw":
                 bsw_audio()
             case "skl" | "kbl":
