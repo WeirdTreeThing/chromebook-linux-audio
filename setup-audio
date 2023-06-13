@@ -199,6 +199,7 @@ def sof_audio(platform):
         case "adl":
             cpdir("/tmp/chromebook-ucm-conf/adl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
             cpdir("/tmp/chromebook-ucm-conf/adl/sof-nau8825", "/usr/share/alsa/ucm2/conf.d/sof-nau8825")
+            cpdir("/tmp/chromebook-ucm-conf/adl/sof-ssp_amp", "/usr/share/alsa/ucm2/conf.d/sof-ssp_amp")
 
     # Common dmic split ucm
     cpdir("/tmp/chromebook-ucm-conf/dmic-common", "/usr/share/alsa/ucm2/conf.d/dmic-common")
