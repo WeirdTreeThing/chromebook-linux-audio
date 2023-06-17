@@ -14,9 +14,10 @@ See the [linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udRE
 # Officially Supported distros
 1. Arch Linux
 2. Fedora 38
-3. Debian testing
-4. OpenSUSE
-5. Void Linux
+3. PopOS*
+4. Debian testing
+5. OpenSUSE
+6. Void Linux
 
 # Other distros
-Other distros will likely work but will require you to manually install packages, with the exception of Ubuntu and Ubuntu based distros like Linux Mint. These have outdated packages and may or may not work.
+Other distros will likely work but will require you to manually install packages, with the exception of Ubuntu and Ubuntu based distros like Linux Mint. These have outdated packages and may or may not work. PopOS will likely require a custom kernel.
