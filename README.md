@@ -15,7 +15,7 @@ See the [linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udRE
 1. Arch Linux
 2. Fedora 38
 3. PopOS*
-4. Debian testing
+4. Debian 12
 5. OpenSUSE
 6. Void Linux
 
