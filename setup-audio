@@ -166,8 +166,13 @@ def sof_audio(platform):
     # Install required packages
     print_status("Installing SOF firmware")
     install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
-    install_package("linux-firmware", "firmware-linux-free firmware-linux-nonfree", "linux-firmware",
-                    "kernel-firmware", "linux-firmware")
+    # linux-firmware has different names on ubuntu (and ubuntu based like PopOS) and debian
+    with open("/etc/os-release") as f:
+        if "ubuntu" in f.read():
+            install_package(deb_package="linux-firmware")
+        else:
+            install_package("linux-firmware", "firmware-linux-free firmware-linux-nonfree", "linux-firmware",
+                            "kernel-firmware", "linux-firmware")
     install_package("alsa-utils", "alsa-utils", "alsa-utils", "alsa-utils", "alsa-utils")
 
     # Force sof driver
