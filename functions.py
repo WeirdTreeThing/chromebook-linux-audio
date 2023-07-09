@@ -150,7 +150,7 @@ def install_package(arch_package: str = "", deb_package: str = "", rpm_package: 
     elif distro.lower().__contains__("ubuntu") or distro.lower().__contains__("debian"):
         bash(f"apt-get install -y {deb_package}")
     elif distro.lower().__contains__("suse"):
-        bash(f"zypper --non-interactive install {suse_package}")
+        bash(f"zypper install {suse_package} -y")
     elif distro.lower().__contains__("fedora"):
         bash(f"dnf install -y {rpm_package}")
     else:
