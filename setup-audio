@@ -83,14 +83,6 @@ def avs_audio(board, username):
     urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/skl/"
                 "dsp_basefw.bin", filename="/lib/firmware/intel/avs/skl/dsp_basefw.bin")
 
-    # Install specific blobs for rammus and nocturne
-    if board in ["rammus", "shyvana", "leona"]:
-        extract_blobs("rammus")
-        print_error("WARNING: You will need a chromeos kernel for speakers to work!")
-    if board == "nocturne":
-        extract_blobs("nocturne")
-        print_error("WARNING: You will need a chromeos kernel for speakers to work!")
-
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
@@ -237,64 +229,6 @@ def amd_audio(amd_platform):
         case 2:
             cpdir("/tmp/chromebook-ucm-conf/cezanne/sof-rt5682s-rt1", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-rt1")
     print_status("After rebooting you will need to set speakers as the output device in sound settings.")
-
-
-# Rammus and Nocturne needs firmware blobs from ChromeOS
-def extract_blobs(platform) -> None:
-    if platform not in ["rammus", "nocturne"]:
-        return
-    print_question("Your device needs special firmware files for speakers to work which needs to be extracted from a "
-                   "ChromeOS recovery image. The recovery image is about 2GB in size. You will need about 6GB of free"
-                   " space to download and extract it.")
-    user_input = input("Would you like to download and extract the firmware? [Y/n] ")
-    if user_input.lower == "n":
-        print_warning("Not installing firmware, speakers will not work!")
-    else:
-        print_status("Deleting old files")
-        bash("rm -f /var/tmp/chromeos_*_recovery_stable-channel*.bin")
-        rmdir("/mnt/chromeos-recovery")
-        rmfile("/tmp/recovery.bin.zip")
-
-        print_status("Installing deps")
-        install_package("unzip", "unzip", "unzip", "unzip", "unzip")
-
-        print_status("Downloading recovery image")
-        if platform == "rammus":
-            download_file("https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15278.64.0_rammus_recovery_"
-                          "stable-channel_mp-v2.bin.zip", "/var/tmp/recovery.bin.zip")
-        else:  # nocturne
-            download_file("https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15278.64.0_nocturne_"
-                          "recovery_stable-channel_mp.bin.zip", "/var/tmp/recovery.bin.zip")
-
-        print_status("Extracting recovery image")
-        bash("unzip /var/tmp/recovery.bin.zip -d /var/tmp")
-
-        print_status("Mounting image")
-        loop_dev = bash("losetup -fP --show /var/tmp/chromeos_*_recovery_*.bin")
-        mkdir("/mnt/chromeos-recovery")
-        bash(f"mount {loop_dev}p3 /mnt/chromeos-recovery -o ro")
-
-        print_status("Extracting firmware")
-        # extract avs firmware
-        cpdir("/mnt/chromeos-recovery/lib/firmware/intel/avs", "/lib/firmware/intel/avs")
-
-        # extract dsm config
-        if platform == "rammus":
-            mkdir("/usr/lib/rammus-dsm/", create_parents=True)
-            cpfile("/mnt/chromeos-recovery/opt/google/dsm/shyvana/dsmparam.bin",
-                   "/usr/lib/rammus-dsm/dsmparam.bin")  # Shyvana and leona have the same dsmparam.bin file
-            cpdir("/mnt/chromeos-recovery/lib/firmware/intel/avs", "/lib/firmware/intel/avs")
-        elif platform == "nocturne":
-            mkdir("/usr/lib/nocturne-dsm/", create_parents=True)
-            cpfile("/mnt/chromeos-recovery/opt/google/dsm/dsmparam.bin", "/usr/lib/nocturne-dsm/dsmparam.bin")
-
-        print_status("Cleaning up")
-        bash("umount -lf /mnt/chromeos-recovery")
-        rmdir("/mnt/chromeos-recovery", keep_dir=False)
-        bash(f"losetup -d {loop_dev}")
-        bash("rm -f /var/tmp/chromeos_*_recovery_stable-channel*.bin")
-        rmdir("/mnt/chromeos-recovery")
-        rmfile("/tmp/recovery.bin.zip")
 
 
 if __name__ == "__main__":
