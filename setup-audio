@@ -224,8 +224,9 @@ def bsw_audio():
 def amd_audio(amd_platform):
     # amd_platform is an int that represents the generation
     # 0 = stoneyridge (grunt)
-    # 1 = picasso/zen2 (zork)
+    # 1 = picasso/zen+ (zork)
     # 2 = cezanne/zen3 (guybrush)
+    # 3 = mendocino/zen2 (skyrim)
     print_status("Installing UCM configuration")
     rmdir("/tmp/chromebook-ucm-conf")
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
@@ -237,6 +238,9 @@ def amd_audio(amd_platform):
             cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682101", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
         case 2:
             cpdir("/tmp/chromebook-ucm-conf/cezanne/sof-rt5682s-rt1", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-rt1")
+        case 3:
+            cpdir("/tmp/chromebook-ucm-conf/mendocino/sof-rt5682s-hs-", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-hs-")
+
     print_status("After rebooting you will need to set speakers as the output device in sound settings.")
 
 
@@ -298,6 +302,8 @@ if __name__ == "__main__":
                 amd_audio(1)
             case "cezanne":
                 amd_audio(2)
+            case "mendocino":
+                amd_audio(3)
             case _:
                 print_error(f"Unknown/Unsupported chromebook model: {device_board}")
                 exit(1)
