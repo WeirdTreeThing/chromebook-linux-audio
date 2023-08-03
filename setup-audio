@@ -91,28 +91,6 @@ def avs_audio(board, username):
         print_error("Looks like your kernel doesn't have the avs modules. Make sure you are on at least 6.0 with avs enabled")
         exit(0)
 
-    # Service for automatically switching between speakers and headphones
-    user_input = input("Would you like to install the automatic speaker and headphone "
-                       "switching service? (Y/n) ").lower()
-    if user_input != "n":
-        print_status("Installing auto switcher")
-        bash("git clone https://github.com/WeirdTreeThing/avs-auto-switcher /tmp/avs-auto-switcher")
-        cpfile("/tmp/avs-auto-switcher/avs-auto-switcher", "/usr/local/bin/avs-auto-switcher")
-        bash("chmod +x /usr/local/bin/avs-auto-switcher")
-        cpfile("/tmp/avs-auto-switcher/avs-auto-switcher.service",
-               "/usr/lib/systemd/user/avs-auto-switcher.service")
-        print_status("Installing deps")
-        install_package("acpid", "acpid", "acpid", "acpid", "acpid")
-        # Fedoras acpid package includes a power.sh script that breaks the power button behavior
-        # The script has not been updated in 6 years either and is not included on other distros
-        rmfile("/etc/acpi/actions/power.sh")
-        if path_exists("/usr/bin/systemctl"):
-            bash("systemctl enable acpid")
-            bash(f"systemctl --machine={username}@.host --user --now enable avs-auto-switcher")
-        else:
-            print_warning("Warning: You are running a non-systemd distro. "
-                          "You will need to manually start the acpid and avs-auto-switcher services")
-
 
 def apl_audio(board, username):
     print_status("Apollolake has two audio drivers:")
