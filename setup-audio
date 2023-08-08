@@ -163,6 +163,7 @@ def sof_audio(platform):
             cpdir("/tmp/chromebook-ucm-conf/cml/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
             cpdir("/tmp/chromebook-ucm-conf/cml/sof-cmlda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-cmlda7219ma")
             cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_rt1011_", "/usr/share/alsa/ucm2/conf.d/sof-cml_rt1011_")
+            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_max9839", "/usr/share/alsa/ucm2/conf.d/sof-cml_max9839")
         case "tgl":
             cpdir("/tmp/chromebook-ucm-conf/tgl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
         case "jsl":
