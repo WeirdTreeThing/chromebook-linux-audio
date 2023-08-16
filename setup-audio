@@ -70,7 +70,7 @@ def avs_audio(board, username):
 
     # Install wireplumber config for dmic if wireplumber is installed on the system
     if path_exists("/usr/bin/wireplumber"):
-        print_status("Installing wireplumber config (fixes internal mic)")
+        print_status("Forcing avs_dmic to use S16LE format")
         mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
         cpfile("conf/avs/51-avs-dmic.lua", "/etc/wireplumber/main.lua.d/51-avs-dmic.lua")
 
@@ -289,5 +289,12 @@ if __name__ == "__main__":
     except KeyError:
         print_error(f"Unknown/Unsupported chromebook model: {device_board}")
         exit(1)
+
+    # Install wireplumber config to increase headroom
+    # fixes instability and crashes on various devices
+    if path_exists("/usr/bin/wireplumber"):
+      print_status("Increasing alsa headroom (fixes instability)")
+      mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
+      cpfile("conf/common/51-increase-headroom.lua", "/etc/wireplumber/main.lua.d/51-increase-headroom.lua")
 
     print_header("Audio installed successfully! Reboot to finish setup.")
