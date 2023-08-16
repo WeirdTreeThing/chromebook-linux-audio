@@ -206,6 +206,18 @@ def amd_audio(amd_platform):
     # 1 = picasso/zen+ (zork)
     # 2 = cezanne/zen3 (guybrush)
     # 3 = mendocino/zen2 (skyrim)
+
+    # Install sof firmware and modprobe config on mendocino
+    if amd_platform >= 3:
+        print_status("Installing SOF firmware")
+        mkdir("/lib/firmware/amd/sof/community", create_parents=True)
+        mkdir("/lib/firmware/amd/sof-tplg", create_parents=True)
+        cpdir("conf/amd-sof/fw", "/lib/firmware/amd/sof/community")
+        cpdir("conf/amd-sof/tplg", "/lib/firmware/amd/sof-tplg")
+
+        print_status("Installing modprobe config")
+        cpfile("conf/amd-sof/mdn-sof.conf", "/etc/modprobe.d/mdn-sof.conf")
+
     print_status("Installing UCM configuration")
     rmdir("/tmp/chromebook-ucm-conf")
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
@@ -219,8 +231,6 @@ def amd_audio(amd_platform):
             cpdir("/tmp/chromebook-ucm-conf/cezanne/sof-rt5682s-rt1", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-rt1")
         case 3:
             cpdir("/tmp/chromebook-ucm-conf/mendocino/sof-rt5682s-hs-", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-hs-")
-
-    print_status("After rebooting you will need to set speakers as the output device in sound settings.")
 
 
 if __name__ == "__main__":
