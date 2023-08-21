@@ -303,6 +303,13 @@ if __name__ == "__main__":
         print_error(f"Unknown/Unsupported chromebook model: {device_board}")
         exit(1)
 
+    # Warn Debian users that they need a custom kernel
+    with open("/etc/os-release", "r") as file:
+        distro = file.read()
+    if distro.lower().__contains__("debian"):
+        print_error("WARNING: Debian users will most likely need a custom kernel for functional audio. "
+                    "See https://github.com/WeirdTreeThing/chromebook-linux-audio/issues/18")
+
     # Install wireplumber config to increase headroom
     # fixes instability and crashes on various devices
     if path_exists("/usr/bin/wireplumber"):
