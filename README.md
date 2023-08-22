@@ -1,4 +1,4 @@
-<h1 align="center">Setup audio on Chromebooks/boxes</h1>
+<h1 align="center">Python script to enable audio support on Chrome devices</h1>
 
 # Instructions
 1.     git clone https://github.com/WeirdTreeThing/chromebook-linux-audio
