@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from threading import Thread
 from time import sleep
-from urllib.request import urlopen, urlretrieve
 
 
 #######################################################################################

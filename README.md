@@ -17,8 +17,10 @@ See the [Linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udRE
 2. Fedora 38
 3. PopOS[^1]
 4. Debian 12[^2]
-5. OpenSUSE
-6. Void Linux
+5. Ubuntu (23.04 preferred but 22.04 LTS should also work)
+6. Linux Mint 
+7. OpenSUSE
+8. Void Linux
 
 [^1]: Depending on the device, PopOS will require a custom kernel
 
@@ -27,4 +29,4 @@ See the [Linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udRE
 For both Debian and PopOS, you can get a custom kernel [here](https://elly.rocks/tmp/BUILDROOT/linux-image-6.1.27chrultrabook-fixups_6.1.27chrultrabook-fixups-8_amd64.deb).
 
 # Other Distros
-Other distros will likely work but will require you to manually install packages, with the exception of Ubuntu and Ubuntu based distros like Linux Mint. These have outdated packages and may or may not work, you are on your own if you choose to use these.
+Other distros will likely work but will require you to manually install packages.
