@@ -318,12 +318,12 @@ if __name__ == "__main__":
         linux_image_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/d567a383cdc8686afc378a00b4cc35293fd3bc4d/linux-image-6.4.6-76060406-generic_6.4.6-76060406.202307241739~1690928105~22.04~d567a38_amd64.deb"
         linux_modules_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/d567a383cdc8686afc378a00b4cc35293fd3bc4d/linux-modules-6.4.6-76060406-generic_6.4.6-76060406.202307241739~1690928105~22.04~d567a38_amd64.deb"
 
-        print_status("Updating libasound2")
+        print_status("Updating libasound2 (this may take some time)")
         urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
         urlretrieve(url=libasound2_data_url, filename="/tmp/libasound2_data.deb")
         bash("apt install /tmp/libasound2*.deb")
 
-        print_status("Updating linux kernel")
+        print_status("Updating linux kernel (this may take some time)")
         urlretrieve(url=linux_image_url, filename="/tmp/linux_image.deb")
         urlretrieve(url=linux_modules_url, filename="/tmp/linux_modules.deb")
         bash("apt install /tmp/linux_*.deb")
