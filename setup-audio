@@ -126,7 +126,7 @@ def sof_audio(platform):
     if args.debug:
         print_status(f"{args.debug} SOF debugging")
         if args.debug == "Enabling":
-            cpfile("conf/sof/alsa-sof-dbg.conf", "/etc/modprobe.d/snd-sof-dbg.conf")
+            cpfile("conf/sof/snd-sof-dbg.conf", "/etc/modprobe.d/snd-sof-dbg.conf")
         else:
             rmfile("/etc/modprobe.d/snd-sof-dbg.conf")
         print_status("Done, please reboot for changes to take effect.")
