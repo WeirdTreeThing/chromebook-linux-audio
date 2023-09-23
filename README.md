@@ -15,18 +15,14 @@ See the [Linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udRE
 # Officially Supported distros
 1. Arch Linux
 2. Fedora 38
-3. PopOS[^1]
-4. Debian 12[^2]
+3. PopOS
+4. Debian 12[^1]
 5. Ubuntu (23.04 preferred but 22.04 LTS should also work)
 6. Linux Mint 
 7. OpenSUSE
 8. Void Linux
 
-[^1]: Depending on the device, PopOS will require a custom kernel
-
-[^2]: Debian will require a custom kernel.
-
-For both Debian and PopOS, you can get a custom kernel [here](https://tree123.org/chrultrabook/debian-kernel/linux-image-6.5.4-chrultrabook_6.5.4-1_amd64.deb).
+[^1]: Debian requires a custom kernel which you can get [here](https://tree123.org/chrultrabook/debian-kernel/linux-image-6.5.4-chrultrabook_6.5.4-1_amd64.deb).
 
 # Other Distros
 Other distros will likely work but will require you to manually install packages.
