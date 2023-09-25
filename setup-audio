@@ -198,7 +198,7 @@ def bsw_audio():
         exit()
 
     print_status("Fixing braswell/baytrail/broadwell audio")
-    install_package("alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm-conf")
+    install_package("alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm", "alsa-ucm-conf", "alsa-ucm-conf")
     install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
     cpfile("conf/sof/bsw-sof.conf", "/etc/modprobe.d/bsw-sof.conf")
 
