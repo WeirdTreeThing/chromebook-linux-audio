@@ -151,6 +151,13 @@ def install_package(arch_package: str = "", deb_package: str = "", rpm_package: 
     elif distro.lower().__contains__("suse"):
         bash(f"zypper --non-interactive install {suse_package}")
     elif distro.lower().__contains__("fedora"):
-        bash(f"dnf install -y {rpm_package}")
+        # Immutable variants of Fedora such as Fedora Silverblue use `rpm-ostree` instead of `dnf`
+        if (is_fedora_immutable()):
+            bash(f"rpm-ostree install -y {rpm_package}")
+        else:
+            bash(f"dnf install -y {rpm_package}")
     else:
         print_error(f"Unknown package manager! Please install {deb_package} using your package manager.")
+
+def is_fedora_immutable():
+    return Path('/usr/bin/rpm-ostree').exists()

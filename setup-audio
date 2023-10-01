@@ -23,6 +23,21 @@ def process_args():
     return parser.parse_args()
 
 
+extension_name = "chromebook-linux-audio"
+if is_fedora_immutable():
+    overlay_path = f"/var/lib/extensions/{extension_name}"
+else:
+    overlay_path = ""
+    
+def setup_overlay():
+    # Setup overlay
+    # https://www.reddit.com/r/Fedora/comments/wir3cq/comment/ijhjfah/?context=3
+    print("Setting up systemd-sysext overlay")
+    mkdir(f"{overlay_path}/usr/share/alsa/ucm2/conf.d", True)
+    mkdir(f"{overlay_path}/usr/lib/extension-release.d", True)
+    cpfile("/etc/os-release", f"{overlay_path}/usr/lib/extension-release.d/extension-release.{extension_name}")
+    bash("systemctl enable systemd-sysext")
+
 def avs_audio(board, username):
     if args.debug:
         print_status(f"{args.debug} AVS debugging")
@@ -63,11 +78,11 @@ def avs_audio(board, username):
     print_status("Installing UCM configuration")
     rmdir("/tmp/chromebook-ucm-conf")
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
-    cpdir("/tmp/chromebook-ucm-conf/avs", "/usr/share/alsa/ucm2/conf.d/")
+    cpdir("/tmp/chromebook-ucm-conf/avs", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/")
 
     # avs tplg is from https://github.com/thesofproject/avs-topology-xml
     print_status("Installing topology")
-    cpdir("conf/avs/tplg", "/lib/firmware/intel/avs")
+    cpdir("conf/avs/tplg", f"{overlay_path}/usr/lib/firmware/intel/avs")
     print_status("Installing modprobe config")
     cpfile("conf/avs/snd-avs.conf", "/etc/modprobe.d/snd-avs.conf")
 
@@ -79,18 +94,18 @@ def avs_audio(board, username):
 
     # updated avs dsp firmware recently got merged upstream but is not packaged in any distro yet
     print_status("Installing AVS firmware")
-    mkdir("/lib/firmware/intel/avs/skl")
-    mkdir("/lib/firmware/intel/avs/apl")
+    mkdir(f"{overlay_path}/usr/lib/firmware/intel/avs/skl")
+    mkdir(f"{overlay_path}/usr/lib/firmware/intel/avs/apl")
     urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/apl/"
-                "dsp_basefw.bin", filename="/lib/firmware/intel/avs/apl/dsp_basefw.bin")
+                "dsp_basefw.bin", filename=f"{overlay_path}/usr/lib/firmware/intel/avs/apl/dsp_basefw.bin")
     urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/skl/"
-                "dsp_basefw.bin", filename="/lib/firmware/intel/avs/skl/dsp_basefw.bin")
+                "dsp_basefw.bin", filename=f"{overlay_path}/usr/lib/firmware/intel/avs/skl/dsp_basefw.bin")
 
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
-        rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
+        rmfile(f"{overlay_path}/usr/lib/firmware/intel/avs/max98357a-tplg.bin")
 
-    if not path_exists(f"/lib/modules/{bash('uname -r')}/kernel/sound/soc/intel/avs"):
+    if not path_exists(f"{overlay_path}/usr/lib/modules/{bash('uname -r')}/kernel/sound/soc/intel/avs"):
         print_error("Looks like your kernel doesn't have the avs modules. Make sure you are on at least 6.0 with avs enabled")
         exit(0)
 
@@ -123,7 +138,6 @@ def apl_audio(board, username):
             print_error(f"Invalid option: {user_input}")
             continue
 
-
 def sof_audio(platform):
     if args.debug:
         print_status(f"{args.debug} SOF debugging")
@@ -155,36 +169,37 @@ def sof_audio(platform):
     print_status("Installing UCM configuration")
     rmdir("/tmp/chromebook-ucm-conf")
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+
     match platform:
         case "apl":
-            cpdir("/tmp/chromebook-ucm-conf/apl/sof-bxtda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-bxtda7219ma")
+            cpdir("/tmp/chromebook-ucm-conf/apl/sof-bxtda7219ma", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-bxtda7219ma")
         case "glk":
-            cpdir("/tmp/chromebook-ucm-conf/glk/sof-glkda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-glkda7219ma")
-            cpdir("/tmp/chromebook-ucm-conf/glk/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
+            cpdir("/tmp/chromebook-ucm-conf/glk/sof-glkda7219ma", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-glkda7219ma")
+            cpdir("/tmp/chromebook-ucm-conf/glk/sof-cs42l42", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
             cpdir("/tmp/chromebook-ucm-conf/glk/sof-glkrt5682ma", "/usr/share/alsa/ucm2/conf.d/sof-glkrt5682ma")
         case "cml":
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cmlda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-cmlda7219ma")
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_rt1011_", "/usr/share/alsa/ucm2/conf.d/sof-cml_rt1011_")
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_max9839", "/usr/share/alsa/ucm2/conf.d/sof-cml_max9839")
+            cpdir("/tmp/chromebook-ucm-conf/cml/sof-rt5682", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-rt5682")
+            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cmlda7219ma", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-cmlda7219ma")
+            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_rt1011_", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-cml_rt1011_")
+            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_max9839", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-cml_max9839")
         case "tgl":
-            cpdir("/tmp/chromebook-ucm-conf/tgl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
+            cpdir("/tmp/chromebook-ucm-conf/tgl/sof-rt5682", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-rt5682")
         case "jsl":
-            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-da7219max98", "/usr/share/alsa/ucm2/conf.d/sof-da7219max98")
-            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
+            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-rt5682", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-rt5682")
+            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-da7219max98", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-da7219max98")
+            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-cs42l42", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
             # JSL needs tplg build from upstream which have not been shipped in distros yet
-            cpdir("conf/sof/tplg", "/lib/firmware/intel/sof-tplg")
+            cpdir("conf/sof/tplg", f"{overlay_path}/usr/lib/firmware/intel/sof-tplg")
         case "adl":
-            cpdir("/tmp/chromebook-ucm-conf/adl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-            cpdir("/tmp/chromebook-ucm-conf/adl/sof-nau8825", "/usr/share/alsa/ucm2/conf.d/sof-nau8825")
-            cpdir("/tmp/chromebook-ucm-conf/adl/sof-ssp_amp", "/usr/share/alsa/ucm2/conf.d/sof-ssp_amp")
+            cpdir("/tmp/chromebook-ucm-conf/adl/sof-rt5682", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-rt5682")
+            cpdir("/tmp/chromebook-ucm-conf/adl/sof-nau8825", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-nau8825")
+            cpdir("/tmp/chromebook-ucm-conf/adl/sof-ssp_amp", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-ssp_amp")
 
     # Common dmic split ucm
-    cpdir("/tmp/chromebook-ucm-conf/dmic-common", "/usr/share/alsa/ucm2/conf.d/dmic-common")
+    cpdir("/tmp/chromebook-ucm-conf/dmic-common", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/dmic-common")
 
     # Common hdmi configurations
-    cpdir("/tmp/chromebook-ucm-conf/hdmi-common", "/usr/share/alsa/ucm2/conf.d/hdmi-common")
+    cpdir("/tmp/chromebook-ucm-conf/hdmi-common", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/hdmi-common")
 
 
 def bsw_audio():
@@ -213,10 +228,10 @@ def amd_audio(amd_platform):
     # Install sof firmware and modprobe config on mendocino
     if amd_platform >= 3:
         print_status("Installing SOF firmware")
-        mkdir("/lib/firmware/amd/sof/community", create_parents=True)
-        mkdir("/lib/firmware/amd/sof-tplg", create_parents=True)
-        cpdir("conf/amd-sof/fw", "/lib/firmware/amd/sof/community")
-        cpdir("conf/amd-sof/tplg", "/lib/firmware/amd/sof-tplg")
+        mkdir(f"{overlay_path}/usr/lib/firmware/amd/sof/community", create_parents=True)
+        mkdir(f"{overlay_path}/usr/lib/firmware/amd/sof-tplg", create_parents=True)
+        cpdir("conf/amd-sof/fw", f"{overlay_path}/usr/lib/firmware/amd/sof/community")
+        cpdir("conf/amd-sof/tplg", f"{overlay_path}/usr/lib/firmware/amd/sof-tplg")
 
         print_status("Installing modprobe config")
         cpfile("conf/amd-sof/mdn-sof.conf", "/etc/modprobe.d/mdn-sof.conf")
@@ -226,17 +241,17 @@ def amd_audio(amd_platform):
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
     match amd_platform:
         case 0:
-            cpdir("/tmp/chromebook-ucm-conf/stoney/acpd7219m98357", "/usr/share/alsa/ucm2/conf.d/acpd7219m98357")
+            cpdir("/tmp/chromebook-ucm-conf/stoney/acpd7219m98357", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/acpd7219m98357")
         case 1:
-            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682m98", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682m98")
-            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682101", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
+            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682m98", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/acp3xalc5682m98")
+            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682101", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
         case 2:
-            cpdir("/tmp/chromebook-ucm-conf/cezanne/sof-rt5682s-rt1", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-rt1")
+            cpdir("/tmp/chromebook-ucm-conf/cezanne/sof-rt5682s-rt1", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-rt5682s-rt1")
         case 3:
-            cpdir("/tmp/chromebook-ucm-conf/mendocino/sof-rt5682s-hs-", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-hs-")
+            cpdir("/tmp/chromebook-ucm-conf/mendocino/sof-rt5682s-hs-", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-rt5682s-hs-")
 
     # Common dmic split ucm
-    cpdir("/tmp/chromebook-ucm-conf/dmic-common", "/usr/share/alsa/ucm2/conf.d/dmic-common")
+    cpdir("/tmp/chromebook-ucm-conf/dmic-common", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/dmic-common")
 
 
 if __name__ == "__main__":
@@ -278,6 +293,9 @@ if __name__ == "__main__":
 
     with open("conf/board-generations.json", "r") as file:
         boards = json.load(file)
+
+    if (is_fedora_immutable()):
+        setup_overlay()
 
     try:
         match boards[device_board]:
@@ -341,3 +359,5 @@ if __name__ == "__main__":
       cpfile("conf/common/51-increase-headroom.lua", "/etc/wireplumber/main.lua.d/51-increase-headroom.lua")
 
     print_header("Audio installed successfully! Reboot to finish setup.")
+    if (is_fedora_immutable()):
+        print_warning("Reboot using shortcut may not work. Use `sudo reboot` to reboot.")

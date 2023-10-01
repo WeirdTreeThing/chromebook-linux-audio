@@ -14,7 +14,7 @@ See the [Linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udRE
 
 # Officially Supported distros
 1. Arch Linux
-2. Fedora 38
+2. Fedora 38 and Immutable Spins of Fedora
 3. PopOS
 4. Debian 12[^1]
 5. Ubuntu (23.04 preferred but 22.04 LTS should also work)
