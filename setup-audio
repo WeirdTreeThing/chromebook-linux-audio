@@ -359,5 +359,3 @@ if __name__ == "__main__":
       cpfile("conf/common/51-increase-headroom.lua", "/etc/wireplumber/main.lua.d/51-increase-headroom.lua")
 
     print_header("Audio installed successfully! Reboot to finish setup.")
-    if (is_fedora_immutable()):
-        print_warning("Reboot using shortcut may not work. Use `sudo reboot` to reboot.")
