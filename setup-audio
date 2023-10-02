@@ -23,12 +23,6 @@ def process_args():
     return parser.parse_args()
 
 
-extension_name = "chromebook-linux-audio"
-if is_fedora_immutable():
-    overlay_path = f"/var/lib/extensions/{extension_name}"
-else:
-    overlay_path = ""
-    
 def setup_overlay():
     # Setup overlay
     # https://www.reddit.com/r/Fedora/comments/wir3cq/comment/ijhjfah/?context=3
@@ -37,6 +31,7 @@ def setup_overlay():
     mkdir(f"{overlay_path}/usr/lib/extension-release.d", True)
     cpfile("/etc/os-release", f"{overlay_path}/usr/lib/extension-release.d/extension-release.{extension_name}")
     bash("systemctl enable systemd-sysext")
+
 
 def avs_audio(board, username):
     if args.debug:
@@ -165,7 +160,7 @@ def sof_audio(platform):
     # Force sof driver
     print_status("Installing modprobe config")
     cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
-    
+
     print_status("Installing UCM configuration")
     rmdir("/tmp/chromebook-ucm-conf")
     bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
@@ -294,7 +289,14 @@ if __name__ == "__main__":
     with open("conf/board-generations.json", "r") as file:
         boards = json.load(file)
 
-    if (is_fedora_immutable()):
+    extension_name = "chromebook-linux-audio"
+    if is_fedora_immutable():
+        overlay_path = f"/var/lib/extensions/{extension_name}"
+    else:
+        overlay_path = ""
+
+    if is_fedora_immutable():
+        #  immutable fedora spins have a read-only /usr dir; we need to use an overlay to "install" the files into it
         setup_overlay()
 
     try:
@@ -342,7 +344,7 @@ if __name__ == "__main__":
         urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
         urlretrieve(url=libasound2_data_url, filename="/tmp/libasound2_data.deb")
         bash("apt install /tmp/libasound2*.deb")
-        
+
         # Check for 5.X kernel and update if found
         kernel_version = sp.check_output("uname -r", shell=True, text=True).strip()
         if re.search("^5.", kernel_version):
