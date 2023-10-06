@@ -317,8 +317,8 @@ if __name__ == "__main__":
     if distro.lower().__contains__("ubuntu_codename=jammy"):
         libasound2_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2_1.2.8-1pop1~1669155503~22.04~a04c9a1_amd64.deb"
         libasound2_data_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2-data_1.2.8-1pop1~1669155503~22.04~a04c9a1_all.deb"
-        linux_image_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/5597803fc39fa47723338c9b5aaab1c175dc4f52/linux-image-6.4.6-76060406-generic_6.4.6-76060406.202307241739~1692717645~22.04~5597803_amd64.deb"
-        linux_modules_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/5597803fc39fa47723338c9b5aaab1c175dc4f52/linux-modules-6.4.6-76060406-generic_6.4.6-76060406.202307241739~1692717645~22.04~5597803_amd64.deb"
+        linux_image_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/070916d1e493bfa9309c831452e8f295e12af3be/linux-image-6.5.4-76060504-generic_6.5.4-76060504.202309191142~1695998943~22.04~070916d_amd64.deb"
+        linux_modules_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/070916d1e493bfa9309c831452e8f295e12af3be/linux-modules-6.5.4-76060504-generic_6.5.4-76060504.202309191142~1695998943~22.04~070916d_amd64.deb"
 
         print_status("Updating libasound2 (this may take some time)")
         urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
