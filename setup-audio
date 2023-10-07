@@ -23,6 +23,11 @@ def process_args():
     return parser.parse_args()
 
 
+def clone_ucm():
+    bash("rm -rf /tmp/chromebook-ucm-conf")
+    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+
+
 def avs_audio(board, username):
     if args.debug:
         print_status(f"{args.debug} AVS debugging")
@@ -61,8 +66,7 @@ def avs_audio(board, username):
 
     # Copy ucms
     print_status("Installing UCM configuration")
-    rmdir("/tmp/chromebook-ucm-conf")
-    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+    clone_ucm()
     cpdir("/tmp/chromebook-ucm-conf/avs", "/usr/share/alsa/ucm2/conf.d/")
 
     # avs tplg is from https://github.com/thesofproject/avs-topology-xml
@@ -161,8 +165,7 @@ def sof_audio(platform):
     cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
     
     print_status("Installing UCM configuration")
-    rmdir("/tmp/chromebook-ucm-conf")
-    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+    clone_ucm()
     match platform:
         case "apl":
             cpdir("/tmp/chromebook-ucm-conf/apl/sof-bxtda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-bxtda7219ma")
@@ -230,8 +233,7 @@ def amd_audio(amd_platform):
         cpfile("conf/amd-sof/mdn-sof.conf", "/etc/modprobe.d/mdn-sof.conf")
 
     print_status("Installing UCM configuration")
-    rmdir("/tmp/chromebook-ucm-conf")
-    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+    clone_ucm()
     match amd_platform:
         case 0:
             cpdir("/tmp/chromebook-ucm-conf/stoney/acpd7219m98357", "/usr/share/alsa/ucm2/conf.d/acpd7219m98357")
