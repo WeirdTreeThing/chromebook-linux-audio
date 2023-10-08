@@ -32,6 +32,10 @@ def setup_overlay():
     cpfile("/etc/os-release", f"{overlay_path}/usr/lib/extension-release.d/extension-release.{extension_name}")
     bash("systemctl enable systemd-sysext")
 
+def clone_ucm():
+    bash("rm -rf /tmp/chromebook-ucm-conf")
+    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+
 
 def avs_audio(board, username):
     if args.debug:
@@ -71,8 +75,7 @@ def avs_audio(board, username):
 
     # Copy ucms
     print_status("Installing UCM configuration")
-    rmdir("/tmp/chromebook-ucm-conf")
-    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+    clone_ucm()
     cpdir("/tmp/chromebook-ucm-conf/avs", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/")
 
     # avs tplg is from https://github.com/thesofproject/avs-topology-xml
@@ -157,14 +160,20 @@ def sof_audio(platform):
                             "kernel-firmware-all", "linux-firmware")
     install_package("alsa-utils", "alsa-utils", "alsa-utils", "alsa-utils", "alsa-utils")
 
+    # RPL devices load tplg with a different file name than ADL, despite being the exact same file as their ADL counterparts
+    # sof-bin currently doesn't include these symlinks, so we create them ourselves
+    if platform == "adl":
+        tplgs = ["cs35l41", "max98357a-rt5682-4ch", "max98357a-rt5682", "max98360a-cs42l42", "max98360a-nau8825", "max98360a-rt5682-2way", "max98360a-rt5682-4ch", "max98360a-rt5682", "max98373-nau8825", "max98390-rt5682", "max98390-ssp2-rt5682-ssp0", "nau8825", "rt1019-nau8825", "rt1019-rt5682", "rt5682", "rt711", "sdw-max98373-rt5682"]
+        for tplg in tplgs:
+            if path_exists(f"{overlay_path}/lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg"):
+                bash(f"ln -s {overlay_path}/lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg {overlay_path}/lib/firmware/intel/sof-tplg/sof-rpl-{tplg}.tplg")
+
     # Force sof driver
     print_status("Installing modprobe config")
     cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
 
     print_status("Installing UCM configuration")
-    rmdir("/tmp/chromebook-ucm-conf")
-    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
-
+    clone_ucm()
     match platform:
         case "apl":
             cpdir("/tmp/chromebook-ucm-conf/apl/sof-bxtda7219ma", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/sof-bxtda7219ma")
@@ -232,8 +241,7 @@ def amd_audio(amd_platform):
         cpfile("conf/amd-sof/mdn-sof.conf", "/etc/modprobe.d/mdn-sof.conf")
 
     print_status("Installing UCM configuration")
-    rmdir("/tmp/chromebook-ucm-conf")
-    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+    clone_ucm()
     match amd_platform:
         case 0:
             cpdir("/tmp/chromebook-ucm-conf/stoney/acpd7219m98357", f"{overlay_path}/usr/share/alsa/ucm2/conf.d/acpd7219m98357")
@@ -326,19 +334,27 @@ if __name__ == "__main__":
         print_error(f"Unknown/Unsupported chromebook model: {device_board}")
         exit(1)
 
-    # Warn Debian users that they need a custom kernel
+    # Prompt debian users to install a custom kernel
     with open("/etc/os-release", "r") as file:
         distro = file.read()
-    if distro.lower().__contains__("debian"):
-        print_error("WARNING: Debian users will most likely need a custom kernel for functional audio. "
-                    "See https://github.com/WeirdTreeThing/chromebook-linux-audio/issues/18")
+    if distro.__contains__("DEBIAN_CODENAME=bookworm"):
+        print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
+        user_input = input("Would you like the script to automatically install this kernel? [Y/n] ")
+        if user_input.lower() != "n":
+            deb_kernel_url = "https://tree123.org/chrultrabook/debian-kernel/linux-image-6.5.4-chrultrabook_6.5.4-1_amd64.deb"
+            try:
+                urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
+                bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
+                rmfile("/tmp/debian-chrultrabook-kernel.deb")
+            except:
+                print_error("ERROR: Failed to install custom kernel")
 
     # Install more up-to-date packages from Pop!_OS if running on Ubuntu 22.04 or Linux Mint
     if distro.lower().__contains__("ubuntu_codename=jammy"):
         libasound2_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2_1.2.8-1pop1~1669155503~22.04~a04c9a1_amd64.deb"
         libasound2_data_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2-data_1.2.8-1pop1~1669155503~22.04~a04c9a1_all.deb"
-        linux_image_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/5597803fc39fa47723338c9b5aaab1c175dc4f52/linux-image-6.4.6-76060406-generic_6.4.6-76060406.202307241739~1692717645~22.04~5597803_amd64.deb"
-        linux_modules_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/5597803fc39fa47723338c9b5aaab1c175dc4f52/linux-modules-6.4.6-76060406-generic_6.4.6-76060406.202307241739~1692717645~22.04~5597803_amd64.deb"
+        linux_image_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/070916d1e493bfa9309c831452e8f295e12af3be/linux-image-6.5.4-76060504-generic_6.5.4-76060504.202309191142~1695998943~22.04~070916d_amd64.deb"
+        linux_modules_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/070916d1e493bfa9309c831452e8f295e12af3be/linux-modules-6.5.4-76060504-generic_6.5.4-76060504.202309191142~1695998943~22.04~070916d_amd64.deb"
 
         print_status("Updating libasound2 (this may take some time)")
         urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
