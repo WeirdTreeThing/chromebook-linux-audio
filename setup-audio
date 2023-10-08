@@ -319,7 +319,7 @@ if __name__ == "__main__":
     # Prompt debian users to install a custom kernel
     with open("/etc/os-release", "r") as file:
         distro = file.read()
-    if distro.__contains__("Debian GNU/Linux 12"):
+    if distro.__contains__("DEBIAN_CODENAME=bookworm"):
         print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
         user_input = input("Would you like the script to automatically install this kernel? [Y/n] ")
         if user_input.lower() != "n":
