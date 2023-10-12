@@ -24,8 +24,11 @@ def process_args():
 
 
 def clone_ucm():
-    bash("rm -rf /tmp/chromebook-ucm-conf")
-    bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+    try:
+        bash("rm -rf /tmp/chromebook-ucm-conf")
+        bash("git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf /tmp/chromebook-ucm-conf")
+    except:
+        print_error("Error: Failed to clone UCM repo")
 
 
 def avs_audio(board, username):
@@ -85,10 +88,13 @@ def avs_audio(board, username):
     print_status("Installing AVS firmware")
     mkdir("/lib/firmware/intel/avs/skl")
     mkdir("/lib/firmware/intel/avs/apl")
-    urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/apl/"
+    try:
+        urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/apl/"
                 "dsp_basefw.bin", filename="/lib/firmware/intel/avs/apl/dsp_basefw.bin")
-    urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/skl/"
+        urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/skl/"
                 "dsp_basefw.bin", filename="/lib/firmware/intel/avs/skl/dsp_basefw.bin")
+    except:
+        print_error("Error: Failed to download AVS firmware")
 
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
@@ -339,17 +345,23 @@ if __name__ == "__main__":
         linux_modules_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/070916d1e493bfa9309c831452e8f295e12af3be/linux-modules-6.5.4-76060504-generic_6.5.4-76060504.202309191142~1695998943~22.04~070916d_amd64.deb"
 
         print_status("Updating libasound2 (this may take some time)")
-        urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
-        urlretrieve(url=libasound2_data_url, filename="/tmp/libasound2_data.deb")
-        bash("apt install /tmp/libasound2*.deb")
+        try:
+            urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
+            urlretrieve(url=libasound2_data_url, filename="/tmp/libasound2_data.deb")
+            bash("apt install /tmp/libasound2*.deb")
+        except:
+            print_error("Error: Failed to install libasound2")
         
         # Check for 5.X kernel and update if found
         kernel_version = sp.check_output("uname -r", shell=True, text=True).strip()
         if re.search("^5.", kernel_version):
             print_status("Updating linux kernel (this may take some time)")
-            urlretrieve(url=linux_image_url, filename="/tmp/linux_image.deb")
-            urlretrieve(url=linux_modules_url, filename="/tmp/linux_modules.deb")
-            bash("apt install /tmp/linux_*.deb")
+            try:
+                urlretrieve(url=linux_image_url, filename="/tmp/linux_image.deb")
+                urlretrieve(url=linux_modules_url, filename="/tmp/linux_modules.deb")
+                bash("apt install /tmp/linux_*.deb")
+            except:
+                print_error("Error: Failed to install kernel")
 
     # Install wireplumber config to increase headroom
     # fixes instability and crashes on various devices
