@@ -31,7 +31,7 @@ def clone_ucm():
         print_error("Error: Failed to clone UCM repo")
 
 
-def avs_audio(board, username):
+def avs_audio(board):
     if args.debug:
         print_status(f"{args.debug} AVS debugging")
         if args.debug == "Enabling":
@@ -105,7 +105,7 @@ def avs_audio(board, username):
         exit(0)
 
 
-def apl_audio(board, username):
+def apl_audio(board):
     print_status("Apollolake has two audio drivers:")
     print_status("SOF: Stable but doesn't work with headphones.")
     print_status("AVS: Unstable and can cause damage to speakers but supports all audio hardware.")
@@ -127,7 +127,7 @@ def apl_audio(board, username):
             # Remove sof modprobe config if it exists
             rmfile("/etc/modprobe.d/snd-sof.conf")
             rmfile("/etc/modprobe.d/apl-sof.conf")
-            avs_audio(board, username)
+            avs_audio(board)
             break
         else:
             print_error(f"Invalid option: {user_input}")
@@ -256,19 +256,10 @@ def amd_audio(amd_platform):
 
 
 if __name__ == "__main__":
-    if os.geteuid() == 0 and not path_exists("/tmp/username"):
-        print_error("Please start the script as non-root/without sudo")
-        exit(1)
-
     args = process_args()  # process args before elevating to root for better ux
 
     # Restart script as root
     if os.geteuid() != 0:
-        # save username
-        with open("/tmp/username", "w") as file:
-            file.write(os.getlogin())
-
-        # restart script as root
         # make the two people that use doas happy
         if path_exists("/usr/bin/doas"):
             doas_args = ['doas', sys.executable] + sys.argv + [os.environ]
@@ -277,20 +268,16 @@ if __name__ == "__main__":
         sudo_args = ['sudo', sys.executable] + sys.argv + [os.environ]
         os.execlpe('sudo', *sudo_args)
 
-    # read username
-    with open("/tmp/username", "r") as file:
-        user_id = file.read()
-
     # Important message
     print_warning("WARNING: this audio script is not fully functional yet!")
 
-    if args.board_name[0] == "":
+    if not args.board_name[0]:
         # Get the board name from dmi
         with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
             device_board = dmi.read().lower().strip()
     else:  # use the board name from the args, for testing only
         device_board = str(args.board_name[0]).lower().strip()
-        print_warning(f"Board name overriden to: {device_board}")
+        print_warning(f"Board name override: {device_board}")
 
     with open("conf/board-generations.json", "r") as file:
         boards = json.load(file)
@@ -302,9 +289,9 @@ if __name__ == "__main__":
             case "byt" | "bsw":
                 bsw_audio()
             case "skl" | "kbl":
-                avs_audio(device_board, user_id)
+                avs_audio(device_board)
             case "apl":
-                apl_audio(device_board, user_id)
+                apl_audio(device_board)
             case "glk" | "cml" | "jsl" | "tgl" | "adl":
                 sof_audio(boards[device_board])
             case "stoney":
