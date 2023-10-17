@@ -17,7 +17,7 @@ See the [Linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udRE
 2. Fedora 38
 3. PopOS
 4. Debian 12[^1]
-5. Ubuntu (23.04 preferred but 22.04 LTS should also work)
+5. Ubuntu (23.10 preferred but 22.04 LTS should also work)
 6. Linux Mint 
 7. OpenSUSE
 8. Void Linux
