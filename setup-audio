@@ -241,9 +241,6 @@ def amd_audio(amd_platform):
         cpdir("conf/amd-sof/fw", "/lib/firmware/amd/sof/community")
         cpdir("conf/amd-sof/tplg", "/lib/firmware/amd/sof-tplg")
 
-        print_status("Installing modprobe config")
-        cpfile("conf/amd-sof/mdn-sof.conf", "/etc/modprobe.d/mdn-sof.conf")
-
     print_status("Installing UCM configuration")
     clone_ucm()
     match amd_platform:
