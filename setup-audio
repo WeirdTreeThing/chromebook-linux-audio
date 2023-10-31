@@ -9,6 +9,10 @@ import subprocess as sp
 from urllib.request import urlopen, urlretrieve
 from functions import *
 
+deb_kernel_url="https://ethanthesleepy.one/public/chrultrabook/debian-kernel/linux-image-6.5.4-chrultrabook_6.5.4-1_amd64.deb"
+libasound2_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2_1.2.8-1pop1~1669155503~22.04~a04c9a1_amd64.deb"
+libasound2_data_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2-data_1.2.8-1pop1~1669155503~22.04~a04c9a1_all.deb"
+
 # parse arguments from the cli. Only for testing/advanced use.
 def process_args():
     parser = argparse.ArgumentParser()
@@ -319,7 +323,6 @@ if __name__ == "__main__":
         print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
         user_input = input("Would you like the script to automatically install this kernel? [Y/n] ")
         if user_input.lower() != "n":
-            deb_kernel_url = "https://tree123.org/chrultrabook/debian-kernel/linux-image-6.5.4-chrultrabook_6.5.4-1_amd64.deb"
             try:
                 urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
                 bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
@@ -329,11 +332,7 @@ if __name__ == "__main__":
 
     # Install more up-to-date packages from Pop!_OS if running on Ubuntu 22.04 or Linux Mint
     if distro.lower().__contains__("ubuntu_codename=jammy"):
-        libasound2_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2_1.2.8-1pop1~1669155503~22.04~a04c9a1_amd64.deb"
-        libasound2_data_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2-data_1.2.8-1pop1~1669155503~22.04~a04c9a1_all.deb"
-        linux_image_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/070916d1e493bfa9309c831452e8f295e12af3be/linux-image-6.5.4-76060504-generic_6.5.4-76060504.202309191142~1695998943~22.04~070916d_amd64.deb"
-        linux_modules_url = "https://apt-origin.pop-os.org/release/pool/jammy/linux/070916d1e493bfa9309c831452e8f295e12af3be/linux-modules-6.5.4-76060504-generic_6.5.4-76060504.202309191142~1695998943~22.04~070916d_amd64.deb"
-
+        # Upgrade libasound to fix ucm issues
         print_status("Updating libasound2 (this may take some time)")
         try:
             urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
@@ -347,9 +346,9 @@ if __name__ == "__main__":
         if re.search("^5.", kernel_version):
             print_status("Updating linux kernel (this may take some time)")
             try:
-                urlretrieve(url=linux_image_url, filename="/tmp/linux_image.deb")
-                urlretrieve(url=linux_modules_url, filename="/tmp/linux_modules.deb")
-                bash("apt install /tmp/linux_*.deb")
+                urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
+                bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
+                rmfile("/tmp/debian-chrultrabook-kernel.deb")
             except:
                 print_error("Error: Failed to install kernel")
 
