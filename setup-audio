@@ -286,7 +286,7 @@ if __name__ == "__main__":
         device_board = str(args.board_name[0]).lower().strip()
         print_warning(f"Board name override: {device_board}")
 
-    with open("conf/board-generations.json", "r") as file:
+    with open("conf/boards.json", "r") as file:
         boards = json.load(file)
 
     try:
