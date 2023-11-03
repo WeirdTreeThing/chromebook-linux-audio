@@ -207,11 +207,8 @@ def sof_audio(platform):
             cpdir("/tmp/chromebook-ucm-conf/adl/sof-nau8825", "/usr/share/alsa/ucm2/conf.d/sof-nau8825")
             cpdir("/tmp/chromebook-ucm-conf/adl/sof-ssp_amp", "/usr/share/alsa/ucm2/conf.d/sof-ssp_amp")
 
-    # Common dmic split ucm
-    cpdir("/tmp/chromebook-ucm-conf/dmic-common", "/usr/share/alsa/ucm2/conf.d/dmic-common")
-
-    # Common hdmi configurations
-    cpdir("/tmp/chromebook-ucm-conf/hdmi-common", "/usr/share/alsa/ucm2/conf.d/hdmi-common")
+    # Common ucm
+    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
 
 
 def bsw_audio():
@@ -258,8 +255,8 @@ def amd_audio(amd_platform):
         case 3:
             cpdir("/tmp/chromebook-ucm-conf/mendocino/sof-rt5682s-hs-", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-hs-")
 
-    # Common dmic split ucm
-    cpdir("/tmp/chromebook-ucm-conf/dmic-common", "/usr/share/alsa/ucm2/conf.d/dmic-common")
+    # Common ucm
+    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
 
 
 if __name__ == "__main__":
