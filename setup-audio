@@ -276,11 +276,16 @@ if __name__ == "__main__":
 
     # Important message
     print_warning("WARNING: this audio script is not fully functional yet!")
-
+    
     if not args.board_name[0]:
-        # Get the board name from dmi
-        with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
-            device_board = dmi.read().lower().strip()
+        # x86: Get the board name from dmi
+        if "x86_64" in sp.check_output("uname -m", shell=True, text=True).strip():
+            with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
+                device_board = dmi.read().lower().strip()
+        # arm: Get board name from DT compatible
+        if "arm" or "aarch64" in sp.check_output("uname -m", shell=True, text=True).strip():
+            with open("/sys/firmware/devicetree/base/compatible", "r") as compat:
+                device_board = compat.read().lower().strip()
     else:  # use the board name from the args, for testing only
         device_board = str(args.board_name[0]).lower().strip()
         print_warning(f"Board name override: {device_board}")
