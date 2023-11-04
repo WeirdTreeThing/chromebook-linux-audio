@@ -288,9 +288,7 @@ if __name__ == "__main__":
 
     try:
         match boards[device_board]:
-            case "bdw":
-                bsw_audio()
-            case "byt" | "bsw":
+            case "bdw" | "byt" | "bsw":
                 bsw_audio()
             case "skl" | "kbl":
                 avs_audio(device_board)
