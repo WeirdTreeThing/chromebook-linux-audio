@@ -231,5 +231,6 @@
   "dewatt": "cezanne",
   "guybrush": "cezanne",
   "nipperkin": "cezanne",
-  "frostflow": "mendocino"
+  "frostflow": "mendocino",
+  "google,krane-sku176google,kranemediatek,mt8183": "mt8183"
 }

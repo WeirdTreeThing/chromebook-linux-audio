@@ -261,6 +261,13 @@ def amd_audio(amd_platform):
     cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
 
 
+def mt8183_audio():
+    print_status("Installing UCM configuration")
+    clone_ucm()
+    cpdir("/tmp/chromebook-ucm-conf/mt8183/mt8183_da7219_r", "/usr/share/alsa/ucm2/conf.d/mt8183_da7219_r")
+    cpdir("/tmp/chromebook-ucm-conf/mt8183/mt8183_mt6358_t", "/usr/share/alsa/ucm2/conf.d/mt8183_mt6358_t")
+
+
 if __name__ == "__main__":
     args = process_args()  # process args before elevating to root for better ux
 
@@ -311,6 +318,8 @@ if __name__ == "__main__":
                 amd_audio(2)
             case "mendocino":
                 amd_audio(3)
+            case "mt8183":
+                mt8183_audio()
             case _:
                 print_error(f"Unknown/Unsupported chromebook model: {device_board}")
                 exit(1)
