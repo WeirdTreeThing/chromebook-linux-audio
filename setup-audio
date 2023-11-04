@@ -209,6 +209,8 @@ def sof_audio(platform):
 
     # Common ucm
     cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
+    if path_exists("/tmp/chromebook-ucm-conf/codecs"):
+        cpdir("/tmp/chromebook-ucm-conf/codecs", "/usr/share/alsa/ucm2/codecs")
 
 
 def bsw_audio():
