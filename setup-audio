@@ -292,7 +292,10 @@ if __name__ == "__main__":
         # arm: Get board name from DT compatible
         if "arm" or "aarch64" in sp.check_output("uname -m", shell=True, text=True).strip():
             with open("/sys/firmware/devicetree/base/compatible", "r") as compat:
-                device_board = compat.read().lower().strip()
+                compat_strings = compat.read().split("\x00")
+                device_board = ""
+                for compat_str in compat_strings:
+                    device_board += compat_str
     else:  # use the board name from the args, for testing only
         device_board = str(args.board_name[0]).lower().strip()
         print_warning(f"Board name override: {device_board}")
