@@ -36,6 +36,7 @@
   "lili": "skl",
   "sentry": "skl",
   "bleemo": "kbl",
+  "endeavour": "kbl",
   "excelsior": "kbl",
   "fizz": "kbl",
   "jax": "kbl",
@@ -44,7 +45,7 @@
   "teemo": "kbl",
   "wukong": "kbl",
   "akali": "kbl",
-  "akali360": "kbl",
+  "akali 360": "kbl",
   "bard": "kbl",
   "ekko": "kbl",
   "eve": "kbl",
@@ -230,5 +231,6 @@
   "dewatt": "cezanne",
   "guybrush": "cezanne",
   "nipperkin": "cezanne",
-  "frostflow": "mendocino"
+  "frostflow": "mendocino",
+  "google,krane-sku176google,kranemediatek,mt8183": "mt8183"
 }

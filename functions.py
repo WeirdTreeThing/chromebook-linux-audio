@@ -157,7 +157,7 @@ def install_package(arch_package: str = "", deb_package: str = "", rpm_package: 
         else:
             bash(f"dnf install -y {rpm_package}")
     else:
-        print_error(f"Unknown package manager! Please install {deb_package} using your package manager.")
+        print_error(f"Unknown package manager! Please install {arch_package} using your package manager.")
 
 def is_fedora_immutable():
     return Path('/usr/bin/rpm-ostree').exists()
