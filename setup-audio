@@ -286,11 +286,11 @@ if __name__ == "__main__":
     
     if not args.board_name[0]:
         # x86: Get the board name from dmi
-        if "x86_64" in sp.check_output("uname -m", shell=True, text=True).strip():
+        if path_exists("/sys/devices/virtual/dmi/id/"):
             with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
                 device_board = dmi.read().lower().strip()
         # arm: Get board name from DT compatible
-        if "arm" or "aarch64" in sp.check_output("uname -m", shell=True, text=True).strip():
+        if path_exists("/sys/firmware/devicetree/base/"):
             with open("/sys/firmware/devicetree/base/compatible", "r") as compat:
                 compat_strings = compat.read().split("\x00")
                 device_board = ""
