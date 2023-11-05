@@ -80,6 +80,7 @@ def avs_audio(board, username):
 
     # avs tplg is from https://github.com/thesofproject/avs-topology-xml
     print_status("Installing topology")
+    mkdir(f"{overlay_path}/usr/lib/firmware/intel/avs", True)
     cpdir("conf/avs/tplg", f"{overlay_path}/usr/lib/firmware/intel/avs")
     print_status("Installing modprobe config")
     cpfile("conf/avs/snd-avs.conf", "/etc/modprobe.d/snd-avs.conf")
