@@ -103,7 +103,7 @@ def avs_audio(board, username):
     if not override_avs:
         rmfile(f"{overlay_path}/usr/lib/firmware/intel/avs/max98357a-tplg.bin")
 
-    if not path_exists(f"{overlay_path}/usr/lib/modules/{bash('uname -r')}/kernel/sound/soc/intel/avs"):
+    if not path_exists(f"/usr/lib/modules/{bash('uname -r')}/kernel/sound/soc/intel/avs"):
         print_error("Looks like your kernel doesn't have the avs modules. Make sure you are on at least 6.0 with avs enabled")
         exit(0)
 
