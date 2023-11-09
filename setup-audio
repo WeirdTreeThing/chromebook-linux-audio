@@ -41,7 +41,7 @@ def clone_ucm():
         exit(1)
 
 
-def avs_audio(board):
+def avs_audio():
     if args.debug:
         print_status(f"{args.debug} AVS debugging")
         if args.debug == "Enabling":
@@ -137,7 +137,7 @@ def apl_audio(board):
             # Remove sof modprobe config if it exists
             rmfile("/etc/modprobe.d/snd-sof.conf")
             rmfile("/etc/modprobe.d/apl-sof.conf")
-            avs_audio(board)
+            avs_audio()
             break
         else:
             print_error(f"Invalid option: {user_input}")
@@ -308,7 +308,7 @@ if __name__ == "__main__":
             case "bdw" | "byt" | "bsw":
                 bsw_audio()
             case "skl" | "kbl":
-                avs_audio(device_board)
+                avs_audio()
             case "apl":
                 apl_audio(device_board)
             case "glk" | "cml" | "jsl" | "tgl" | "adl":
