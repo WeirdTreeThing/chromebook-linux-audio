@@ -115,7 +115,7 @@ def avs_audio():
         exit(0)
 
 
-def apl_audio(board):
+def apl_audio():
     print_status("Apollolake has two audio drivers:")
     print_status("SOF: Stable but doesn't work with headphones.")
     print_status("AVS: Unstable and can cause damage to speakers but supports all audio hardware.")
@@ -310,7 +310,7 @@ if __name__ == "__main__":
             case "skl" | "kbl":
                 avs_audio()
             case "apl":
-                apl_audio(device_board)
+                apl_audio()
             case "glk" | "cml" | "jsl" | "tgl" | "adl":
                 sof_audio(boards[device_board])
             case "stoney":
