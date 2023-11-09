@@ -175,6 +175,8 @@ def sof_audio(platform):
         for tplg in tplgs:
             if path_exists(f"/lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg"):
                 bash(f"ln -s /lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg /lib/firmware/intel/sof-tplg/sof-rpl-{tplg}.tplg")
+            if path_exists(f"/lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg.xz"):
+                bash(f"ln -s /lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg.xz /lib/firmware/intel/sof-tplg/sof-rpl-{tplg}.tplg.xz")
 
     # Force sof driver
     print_status("Installing modprobe config")
