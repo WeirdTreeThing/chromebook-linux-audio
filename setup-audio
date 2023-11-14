@@ -24,18 +24,15 @@ def process_args():
                         help="Disable audio debugging.")
     parser.add_argument("--force-avs-install", action="store_true", dest="force_avs_install", default=False,
                         help="DANGEROUS: Force enable AVS install. MIGHT CAUSE PERMANENT DAMAGE TO SPEAKERS!")
-    parser.add_argument("--branch", dest="branch_name", type=str, nargs=1, default=[""],
+    parser.add_argument("--branch", dest="branch_name", type=str, nargs=1, default=["main"],
                         help="Use a different branch when cloning ucm. FOR DEVS AND TESTERS ONLY!")
     return parser.parse_args()
 
 
 def clone_ucm():
     try:
-        branch = ""
-        if not args.branch_name[0] == "":
-            branch = f"-b {args.branch_name[0]}"
         bash("rm -rf /tmp/chromebook-ucm-conf")
-        bash(f"git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf {branch} /tmp/chromebook-ucm-conf")
+        bash(f"git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf -b {args.branch_name[0]} /tmp/chromebook-ucm-conf")
     except:
         print_error("Error: Failed to clone UCM repo")
         exit(1)
