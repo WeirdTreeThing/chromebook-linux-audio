@@ -153,58 +153,39 @@ def sof_audio(platform):
 
     print_status("Installing SOF")
 
-    # Install required packages
+    # Install firmware packages
     print_status("Installing SOF firmware")
     install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
     # linux-firmware has different names on ubuntu (and ubuntu based like PopOS) and debian
-    with open("/etc/os-release") as f:
-        if "ubuntu" in f.read():
+    with open("/etc/os-release") as osrel:
+        if "ubuntu" in osrel.read():
             install_package(deb_package="linux-firmware")
         else:
             install_package("linux-firmware", "firmware-linux-free firmware-linux-nonfree", "linux-firmware",
                             "kernel-firmware-all", "linux-firmware")
-    install_package("alsa-utils", "alsa-utils", "alsa-utils", "alsa-utils", "alsa-utils")
 
+    # Special tplg cases
     # RPL devices load tplg with a different file name than ADL, despite being the exact same file as their ADL counterparts
     # sof-bin currently doesn't include these symlinks, so we create them ourselves
     if platform == "adl":
         tplgs = ["cs35l41", "max98357a-rt5682-4ch", "max98357a-rt5682", "max98360a-cs42l42", "max98360a-nau8825", "max98360a-rt5682-2way", "max98360a-rt5682-4ch", "max98360a-rt5682", "max98373-nau8825", "max98390-rt5682", "max98390-ssp2-rt5682-ssp0", "nau8825", "rt1019-nau8825", "rt1019-rt5682", "rt5682", "rt711", "sdw-max98373-rt5682"]
         for tplg in tplgs:
-            if path_exists(f"/lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg"):
-                bash(f"ln -s /lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg /lib/firmware/intel/sof-tplg/sof-rpl-{tplg}.tplg")
-            if path_exists(f"/lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg.xz"):
-                bash(f"ln -s /lib/firmware/intel/sof-tplg/sof-adl-{tplg}.tplg.xz /lib/firmware/intel/sof-tplg/sof-rpl-{tplg}.tplg.xz")
+            tplg_path="lib/firmware/intel/sof-tplg"
+            if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg"):
+                bash(f"ln -s {tplg_path}/sof-adl-{tplg}.tplg {tplg_path}/sof-rpl-{tplg}.tplg")
+            if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.xz"):
+                bash(f"ln -s {tplg_path}/sof-adl-{tplg}.tplg.xz {tplg_path}/sof-rpl-{tplg}.tplg.xz")
+    # JSL needs tplg build from upstream which have not been shipped in distros yet
+    cpdir("conf/sof/tplg", "/lib/firmware/intel/sof-tplg")
 
     # Force sof driver
     print_status("Installing modprobe config")
     cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
     
+    # Install UCM
     print_status("Installing UCM configuration")
     clone_ucm()
-    match platform:
-        case "apl":
-            cpdir("/tmp/chromebook-ucm-conf/apl/sof-bxtda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-bxtda7219ma")
-        case "glk":
-            cpdir("/tmp/chromebook-ucm-conf/glk/sof-glkda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-glkda7219ma")
-            cpdir("/tmp/chromebook-ucm-conf/glk/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
-            cpdir("/tmp/chromebook-ucm-conf/glk/sof-glkrt5682ma", "/usr/share/alsa/ucm2/conf.d/sof-glkrt5682ma")
-        case "cml":
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cmlda7219ma", "/usr/share/alsa/ucm2/conf.d/sof-cmlda7219ma")
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_rt1011_", "/usr/share/alsa/ucm2/conf.d/sof-cml_rt1011_")
-            cpdir("/tmp/chromebook-ucm-conf/cml/sof-cml_max9839", "/usr/share/alsa/ucm2/conf.d/sof-cml_max9839")
-        case "tgl":
-            cpdir("/tmp/chromebook-ucm-conf/tgl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-        case "jsl":
-            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-da7219max98", "/usr/share/alsa/ucm2/conf.d/sof-da7219max98")
-            cpdir("/tmp/chromebook-ucm-conf/jsl/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
-            # JSL needs tplg build from upstream which have not been shipped in distros yet
-            cpdir("conf/sof/tplg", "/lib/firmware/intel/sof-tplg")
-        case "adl":
-            cpdir("/tmp/chromebook-ucm-conf/adl/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-            cpdir("/tmp/chromebook-ucm-conf/adl/sof-nau8825", "/usr/share/alsa/ucm2/conf.d/sof-nau8825")
-            cpdir("/tmp/chromebook-ucm-conf/adl/sof-ssp_amp", "/usr/share/alsa/ucm2/conf.d/sof-ssp_amp")
+    cpdir(f"/tmp/chromebook-ucm-conf/{platform}/", "/usr/share/alsa/ucm2/conf.d/")
 
     # Common ucm
     cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
