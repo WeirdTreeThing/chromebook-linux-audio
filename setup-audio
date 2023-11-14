@@ -153,16 +153,10 @@ def sof_audio(platform):
 
     print_status("Installing SOF")
 
-    # Install firmware packages
-    print_status("Installing SOF firmware")
-    install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
-    # linux-firmware has different names on ubuntu (and ubuntu based like PopOS) and debian
-    with open("/etc/os-release") as osrel:
-        if "ubuntu" in osrel.read():
-            install_package(deb_package="linux-firmware")
-        else:
-            install_package("linux-firmware", "firmware-linux-free firmware-linux-nonfree", "linux-firmware",
-                            "kernel-firmware-all", "linux-firmware")
+    # Install sof firmware
+    if not path_exists("/lib/firmware/intel/sof"):
+        print_status("Installing SOF firmware")
+        install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
 
     # Special tplg cases
     # RPL devices load tplg with a different file name than ADL, despite being the exact same file as their ADL counterparts
