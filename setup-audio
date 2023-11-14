@@ -189,20 +189,20 @@ def sof_audio(platform):
         cpdir("/tmp/chromebook-ucm-conf/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
 
 
-def bsw_audio():
+def hifi2_audio():
     if args.debug:
-        print_status(f"{args.debug} SOF BSW debugging")
+        print_status(f"{args.debug} SOF debugging")
         if args.debug == "Enabling":
-            cpfile(f"conf/sof/bsw-sof-dbg.conf", "/etc/modprobe.d/bsw-sof-dbg.conf")
+            cpfile(f"conf/sof/hifi2-sof-dbg.conf", "/etc/modprobe.d/hifi2-sof-dbg.conf")
         else:
-            rmfile("/etc/modprobe.d/bsw-sof-dbg.conf")
+            rmfile("/etc/modprobe.d/hifi2-sof-dbg.conf")
         print_status("Done, please reboot for changes to take effect.")
         exit()
 
-    print_status("Fixing braswell/baytrail/broadwell audio")
-    install_package("alsa-ucm-conf", "alsa-ucm-conf", "alsa-ucm", "alsa-ucm-conf", "alsa-ucm-conf")
-    install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
-    cpfile("conf/sof/bsw-sof.conf", "/etc/modprobe.d/bsw-sof.conf")
+    print_status("Forcing SOF driver in debug mode")
+    if not path_exists("/lib/firmware/intel/sof"):
+        install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
+    cpfile("conf/sof/hifi2-sof.conf", "/etc/modprobe.d/hifi2-sof.conf")
 
 
 def amd_audio(amd_platform):
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     try:
         match boards[device_board]:
             case "bdw" | "byt" | "bsw":
-                bsw_audio()
+                hifi2_audio()
             case "skl" | "kbl":
                 avs_audio()
             case "apl":
