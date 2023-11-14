@@ -29,6 +29,83 @@ def process_args():
     return parser.parse_args()
 
 
+def ubuntu2204():
+    # Upgrade libasound to fix ucm issues
+    print_status("Updating libasound2 (this may take some time)")
+    try:
+        urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
+        urlretrieve(url=libasound2_data_url, filename="/tmp/libasound2_data.deb")
+        bash("apt install /tmp/libasound2*.deb")
+    except:
+        print_error("Error: Failed to install libasound2")
+
+    # Check for 5.X kernel and update if found
+    kernel_version = sp.check_output("uname -r", shell=True, text=True).strip()
+    if re.search("^5.", kernel_version):
+        install_deb_kernel()
+
+
+def install_deb_kernel():
+    print_status("Updating linux kernel (this may take some time)")
+    try:
+        urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
+        bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
+        rmfile("/tmp/debian-chrultrabook-kernel.deb")
+    except:
+        print_error("Error: Failed to install kernel")
+
+
+def get_board():
+    if not args.board_name[0]:
+        # x86: Get the board name from dmi
+        if path_exists("/sys/devices/virtual/dmi/id/"):
+            with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
+                device_board = dmi.read().lower().strip()
+        # arm: Get board name from DT compatible
+        if path_exists("/sys/firmware/devicetree/base/"):
+            with open("/sys/firmware/devicetree/base/compatible", "r") as compat:
+                compat_strings = compat.read().split("\x00")
+                device_board = ""
+                for compat_str in compat_strings:
+                    device_board += compat_str
+    else:  # use the board name from the args, for testing only
+        device_board = str(args.board_name[0]).lower().strip()
+        print_warning(f"Board name override: {device_board}")
+    return device_board
+
+
+def match_platform(device_board):
+    with open("conf/boards.json", "r") as file:
+        boards = json.load(file)
+
+    try:
+        match boards[device_board]:
+            case "bdw" | "byt" | "bsw":
+                hifi2_audio()
+            case "skl" | "kbl":
+                avs_audio()
+            case "apl":
+                apl_audio()
+            case "glk" | "cml" | "jsl" | "tgl" | "adl":
+                sof_audio(boards[device_board])
+            case "stoney":
+                amd_audio(0)
+            case "picasso":
+                amd_audio(1)
+            case "cezanne":
+                amd_audio(2)
+            case "mendocino":
+                amd_audio(3)
+            case "mt8183":
+                mt8183_audio()
+            case _:
+                print_error(f"Unknown/Unsupported chromebook model: {device_board}")
+                exit(1)
+    except KeyError:
+        print_error(f"Unknown/Unsupported chromebook model: {device_board}")
+        exit(1)
+
+
 def clone_ucm():
     try:
         bash("rm -rf /tmp/chromebook-ucm-conf")
@@ -245,7 +322,7 @@ def mt8183_audio():
 
 
 if __name__ == "__main__":
-    args = process_args()  # process args before elevating to root for better ux
+    args = process_args()
 
     # Restart script as root
     if os.geteuid() != 0:
@@ -258,89 +335,24 @@ if __name__ == "__main__":
         os.execlpe('sudo', *sudo_args)
 
     # Important message
-    print_warning("WARNING: this audio script is not fully functional yet!")
+    print_warning("WARNING: You may run into audio issues, even after running this script. Please report any issues on github.")
     
-    if not args.board_name[0]:
-        # x86: Get the board name from dmi
-        if path_exists("/sys/devices/virtual/dmi/id/"):
-            with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
-                device_board = dmi.read().lower().strip()
-        # arm: Get board name from DT compatible
-        if path_exists("/sys/firmware/devicetree/base/"):
-            with open("/sys/firmware/devicetree/base/compatible", "r") as compat:
-                compat_strings = compat.read().split("\x00")
-                device_board = ""
-                for compat_str in compat_strings:
-                    device_board += compat_str
-    else:  # use the board name from the args, for testing only
-        device_board = str(args.board_name[0]).lower().strip()
-        print_warning(f"Board name override: {device_board}")
-
-    with open("conf/boards.json", "r") as file:
-        boards = json.load(file)
-
-    try:
-        match boards[device_board]:
-            case "bdw" | "byt" | "bsw":
-                hifi2_audio()
-            case "skl" | "kbl":
-                avs_audio()
-            case "apl":
-                apl_audio()
-            case "glk" | "cml" | "jsl" | "tgl" | "adl":
-                sof_audio(boards[device_board])
-            case "stoney":
-                amd_audio(0)
-            case "picasso":
-                amd_audio(1)
-            case "cezanne":
-                amd_audio(2)
-            case "mendocino":
-                amd_audio(3)
-            case "mt8183":
-                mt8183_audio()
-            case _:
-                print_error(f"Unknown/Unsupported chromebook model: {device_board}")
-                exit(1)
-    except KeyError:
-        print_error(f"Unknown/Unsupported chromebook model: {device_board}")
-        exit(1)
+    # platform specific configuration
+    board = get_board()
+    match_platform(board)
 
     # Prompt debian users to install a custom kernel
     with open("/etc/os-release", "r") as file:
         distro = file.read()
-    if distro.__contains__("VERSION_CODENAME=bookworm") or distro.__contains__("DEBIAN_CODENAME=bookworm"):
+    if distro.__contains__("VERSION_CODENAME=bookworm") or distro.__contains__("DEBIAN_CODENAME=bookworm") and\
+    "chrultrabook" not in sp.check_output("uname -r", shell=True, text=True).strip():
         print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
-        user_input = input("Would you like the script to automatically install this kernel? [Y/n] ")
-        if user_input.lower() != "n":
-            try:
-                urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
-                bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
-                rmfile("/tmp/debian-chrultrabook-kernel.deb")
-            except:
-                print_error("ERROR: Failed to install custom kernel")
+        if input("Would you like the script to automatically install this kernel? [Y/n] ").lower() != "n":
+            install_deb_kernel()
 
     # Install more up-to-date packages from Pop!_OS if running on Ubuntu 22.04 or Linux Mint
     if distro.lower().__contains__("ubuntu_codename=jammy"):
-        # Upgrade libasound to fix ucm issues
-        print_status("Updating libasound2 (this may take some time)")
-        try:
-            urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
-            urlretrieve(url=libasound2_data_url, filename="/tmp/libasound2_data.deb")
-            bash("apt install /tmp/libasound2*.deb")
-        except:
-            print_error("Error: Failed to install libasound2")
-        
-        # Check for 5.X kernel and update if found
-        kernel_version = sp.check_output("uname -r", shell=True, text=True).strip()
-        if re.search("^5.", kernel_version):
-            print_status("Updating linux kernel (this may take some time)")
-            try:
-                urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
-                bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
-                rmfile("/tmp/debian-chrultrabook-kernel.deb")
-            except:
-                print_error("Error: Failed to install kernel")
+        ubuntu2204()
 
     # Install wireplumber config to increase headroom
     # fixes instability and crashes on various devices
