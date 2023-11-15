@@ -88,14 +88,8 @@ def match_platform(device_board):
                 apl_audio()
             case "glk" | "cml" | "jsl" | "tgl" | "adl":
                 sof_audio(boards[device_board])
-            case "stoney":
-                amd_audio("stoney")
-            case "picasso":
-                amd_audio("picasso")
-            case "cezanne":
-                amd_audio("cezanne")
-            case "mendocino":
-                amd_audio("mendocino")
+            case "stoney" | "picasso" | "cezanne" | "mendocino":
+                amd_audio(boards[device_board])
             case "mt8183":
                 mt8183_audio()
             case _:
