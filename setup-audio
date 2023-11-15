@@ -89,13 +89,13 @@ def match_platform(device_board):
             case "glk" | "cml" | "jsl" | "tgl" | "adl":
                 sof_audio(boards[device_board])
             case "stoney":
-                amd_audio(0)
+                amd_audio("stoney")
             case "picasso":
-                amd_audio(1)
+                amd_audio("picasso")
             case "cezanne":
-                amd_audio(2)
+                amd_audio("cezanne")
             case "mendocino":
-                amd_audio(3)
+                amd_audio("mendocino")
             case "mt8183":
                 mt8183_audio()
             case _:
@@ -282,33 +282,19 @@ def hifi2_audio():
     cpfile("conf/sof/hifi2-sof.conf", "/etc/modprobe.d/hifi2-sof.conf")
 
 
-def amd_audio(amd_platform):
-    # amd_platform is an int that represents the generation
-    # 0 = stoneyridge (grunt)
-    # 1 = picasso/zen+ (zork)
-    # 2 = cezanne/zen3 (guybrush)
-    # 3 = mendocino/zen2 (skyrim)
-
+def amd_audio(platform):
     # Install sof firmware and modprobe config on mendocino
-    if amd_platform >= 3:
+    if amd_platform == "mdn":
         print_status("Installing SOF firmware")
         mkdir("/lib/firmware/amd/sof/community", create_parents=True)
         mkdir("/lib/firmware/amd/sof-tplg", create_parents=True)
         cpdir("conf/amd-sof/fw", "/lib/firmware/amd/sof/community")
         cpdir("conf/amd-sof/tplg", "/lib/firmware/amd/sof-tplg")
 
+    # UCM
     print_status("Installing UCM configuration")
     clone_ucm()
-    match amd_platform:
-        case 0:
-            cpdir("/tmp/chromebook-ucm-conf/stoney/acpd7219m98357", "/usr/share/alsa/ucm2/conf.d/acpd7219m98357")
-        case 1:
-            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682m98", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682m98")
-            cpdir("/tmp/chromebook-ucm-conf/picasso/acp3xalc5682101", "/usr/share/alsa/ucm2/conf.d/acp3xalc5682101")
-        case 2:
-            cpdir("/tmp/chromebook-ucm-conf/cezanne/sof-rt5682s-rt1", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-rt1")
-        case 3:
-            cpdir("/tmp/chromebook-ucm-conf/mendocino/sof-rt5682s-hs-", "/usr/share/alsa/ucm2/conf.d/sof-rt5682s-hs-")
+    cpdir(f"/tmp/chromebook-ucm-conf/{platform}/", "/usr/share/alsa/ucm2/conf.d/")
 
     # Common ucm
     cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
