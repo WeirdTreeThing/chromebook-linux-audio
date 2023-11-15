@@ -126,10 +126,9 @@ def avs_audio():
         if args.force_avs_install:
             print_error(
                 "WARNING: Your device has max98357a and can cause permanent damage to your speakers if you set the volume too loud!")
-            user_input = input('Type "I understand the risk of permanently damaging my speakers" in all caps to continue: ')
-            while user_input != "I UNDERSTAND THE RISK OF PERMANENTLY DAMAGING MY SPEAKERS":
-                user_input = input(
-                    'Type "I understand the risk of permanently damaging my speakers" in all caps to continue: ')
+            while input('Type "I understand the risk of permanently damaging my speakers" in all caps to continue: ')\
+            != "I UNDERSTAND THE RISK OF PERMANENTLY DAMAGING MY SPEAKERS":
+                print_error("Try again")
             override_avs = True
         else:
             print_error(
@@ -138,11 +137,9 @@ def avs_audio():
                 "disabled until a fix is in place. Headphones and HDMI audio are safe from this.")
             print_question("If you want to disable this check, restart the script with --force-avs-install")
 
-            user_input = input(
-                'Type "I Understand my speakers will not work since my device has max98357a!" in all caps to continue: ')
-            while user_input != "I UNDERSTAND MY SPEAKERS WILL NOT WORK SINCE MY DEVICE HAS MAX98357A!":
-                user_input = input(
-                    'Type "I Understand my speakers will not work since my device has max98357a!" in all caps to continue: ')
+            while input('Type "I Understand my speakers will not work since my device has max98357a!" in all caps to continue: ')\
+            != "I UNDERSTAND MY SPEAKERS WILL NOT WORK SINCE MY DEVICE HAS MAX98357A!":
+                print_error("Try again")
             override_avs = False
 
     # Copy ucms
