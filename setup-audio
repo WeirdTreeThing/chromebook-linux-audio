@@ -275,7 +275,7 @@ def hifi2_audio():
 
 def amd_audio(platform):
     # Install sof firmware and modprobe config on mendocino
-    if amd_platform == "mdn":
+    if platform == "mendocino":
         print_status("Installing SOF firmware")
         mkdir("/lib/firmware/amd/sof/community", create_parents=True)
         mkdir("/lib/firmware/amd/sof-tplg", create_parents=True)
