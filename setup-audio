@@ -253,8 +253,12 @@ def sof_audio(platform):
     cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
     if path_exists("/tmp/chromebook-ucm-conf/codecs"):
         cpdir("/tmp/chromebook-ucm-conf/codecs", "/usr/share/alsa/ucm2/codecs")
+    if path_exists("/tmp/chromebook-ucm-conf/platforms"):
+        cpdir("/tmp/chromebook-ucm-conf/platforms", "/usr/share/alsa/ucm2/platforms")
     if path_exists("/tmp/chromebook-ucm-conf/sof-rt5682"):
         cpdir("/tmp/chromebook-ucm-conf/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
+    if path_exists("/tmp/chromebook-ucm-conf/sof-cs42l42"):
+        cpdir("/tmp/chromebook-ucm-conf/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
 
 
 def hifi2_audio():
