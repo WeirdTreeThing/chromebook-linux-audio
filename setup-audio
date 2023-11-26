@@ -249,17 +249,6 @@ def sof_audio(platform):
     clone_ucm()
     cpdir(f"/tmp/chromebook-ucm-conf/{platform}/", "/usr/share/alsa/ucm2/conf.d/")
 
-    # Common ucm
-    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
-    if path_exists("/tmp/chromebook-ucm-conf/codecs"):
-        cpdir("/tmp/chromebook-ucm-conf/codecs", "/usr/share/alsa/ucm2/codecs")
-    if path_exists("/tmp/chromebook-ucm-conf/platforms"):
-        cpdir("/tmp/chromebook-ucm-conf/platforms", "/usr/share/alsa/ucm2/platforms")
-    if path_exists("/tmp/chromebook-ucm-conf/sof-rt5682"):
-        cpdir("/tmp/chromebook-ucm-conf/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-    if path_exists("/tmp/chromebook-ucm-conf/sof-cs42l42"):
-        cpdir("/tmp/chromebook-ucm-conf/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
-
 
 def hifi2_audio():
     if args.debug:
@@ -290,9 +279,6 @@ def amd_audio(platform):
     print_status("Installing UCM configuration")
     clone_ucm()
     cpdir(f"/tmp/chromebook-ucm-conf/{platform}/", "/usr/share/alsa/ucm2/conf.d/")
-
-    # Common ucm
-    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
 
 
 def mt8183_audio():
@@ -330,6 +316,17 @@ if __name__ == "__main__":
         print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
         if input("Would you like the script to automatically install this kernel? [Y/n] ").lower() != "n":
             install_deb_kernel()
+
+    # Common ucm
+    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
+    if path_exists("/tmp/chromebook-ucm-conf/codecs"):
+        cpdir("/tmp/chromebook-ucm-conf/codecs", "/usr/share/alsa/ucm2/codecs")
+    if path_exists("/tmp/chromebook-ucm-conf/platforms"):
+        cpdir("/tmp/chromebook-ucm-conf/platforms", "/usr/share/alsa/ucm2/platforms")
+    if path_exists("/tmp/chromebook-ucm-conf/sof-rt5682"):
+        cpdir("/tmp/chromebook-ucm-conf/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
+    if path_exists("/tmp/chromebook-ucm-conf/sof-cs42l42"):
+        cpdir("/tmp/chromebook-ucm-conf/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
 
     # Install more up-to-date packages from Pop!_OS if running on Ubuntu 22.04 or Linux Mint
     if distro.lower().__contains__("ubuntu_codename=jammy"):
