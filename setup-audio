@@ -29,6 +29,25 @@ def process_args():
     return parser.parse_args()
 
 
+def install_ucm():
+    print_status("Installing UCM configuration")
+    try:
+        bash("rm -rf /tmp/chromebook-ucm-conf")
+        bash(f"git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf -b {args.branch_name[0]} /tmp/chromebook-ucm-conf")
+    except:
+        print_error("Error: Failed to clone UCM repo")
+        exit(1)
+
+    for platform in ["adl", "apl", "avs", "cezanne", "cml", "glk", "jsl", "mendocino", "mt8183", "picasso", "stoney"]:
+        cpdir(f"/tmp/chromebook-ucm-conf/{platform}", "/usr/share/alsa/ucm2/conf.d")
+
+    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
+    cpdir("/tmp/chromebook-ucm-conf/codecs", "/usr/share/alsa/ucm2/codecs")
+    cpdir("/tmp/chromebook-ucm-conf/platforms", "/usr/share/alsa/ucm2/platforms")
+    cpdir("/tmp/chromebook-ucm-conf/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
+    cpdir("/tmp/chromebook-ucm-conf/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
+
+
 def ubuntu2204():
     # Upgrade libasound to fix ucm issues
     print_status("Updating libasound2 (this may take some time)")
@@ -91,21 +110,13 @@ def match_platform(device_board):
             case "stoney" | "picasso" | "cezanne" | "mendocino":
                 amd_audio(boards[device_board])
             case "mt8183":
-                mt8183_audio()
+                # mt8183 only needs ucm, so just pass to make the check happy
+                pass
             case _:
                 print_error(f"Unknown/Unsupported chromebook model: {device_board}")
                 exit(1)
     except KeyError:
         print_error(f"Unknown/Unsupported chromebook model: {device_board}")
-        exit(1)
-
-
-def clone_ucm():
-    try:
-        bash("rm -rf /tmp/chromebook-ucm-conf")
-        bash(f"git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf -b {args.branch_name[0]} /tmp/chromebook-ucm-conf")
-    except:
-        print_error("Error: Failed to clone UCM repo")
         exit(1)
 
 
@@ -141,11 +152,6 @@ def avs_audio():
             != "I UNDERSTAND MY SPEAKERS WILL NOT WORK SINCE MY DEVICE HAS MAX98357A!":
                 print_error("Try again")
             override_avs = False
-
-    # Copy ucms
-    print_status("Installing UCM configuration")
-    clone_ucm()
-    cpdir("/tmp/chromebook-ucm-conf/avs", "/usr/share/alsa/ucm2/conf.d/")
 
     # avs tplg is from https://github.com/thesofproject/avs-topology-xml
     print_status("Installing topology")
@@ -244,11 +250,6 @@ def sof_audio(platform):
     print_status("Installing modprobe config")
     cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
     
-    # Install UCM
-    print_status("Installing UCM configuration")
-    clone_ucm()
-    cpdir(f"/tmp/chromebook-ucm-conf/{platform}/", "/usr/share/alsa/ucm2/conf.d/")
-
 
 def hifi2_audio():
     if args.debug:
@@ -274,18 +275,6 @@ def amd_audio(platform):
         mkdir("/lib/firmware/amd/sof-tplg", create_parents=True)
         cpdir("conf/amd-sof/fw", "/lib/firmware/amd/sof/community")
         cpdir("conf/amd-sof/tplg", "/lib/firmware/amd/sof-tplg")
-
-    # UCM
-    print_status("Installing UCM configuration")
-    clone_ucm()
-    cpdir(f"/tmp/chromebook-ucm-conf/{platform}/", "/usr/share/alsa/ucm2/conf.d/")
-
-
-def mt8183_audio():
-    print_status("Installing UCM configuration")
-    clone_ucm()
-    cpdir("/tmp/chromebook-ucm-conf/mt8183/mt8183_da7219_r", "/usr/share/alsa/ucm2/conf.d/mt8183_da7219_r")
-    cpdir("/tmp/chromebook-ucm-conf/mt8183/mt8183_mt6358_t", "/usr/share/alsa/ucm2/conf.d/mt8183_mt6358_t")
 
 
 if __name__ == "__main__":
@@ -317,16 +306,8 @@ if __name__ == "__main__":
         if input("Would you like the script to automatically install this kernel? [Y/n] ").lower() != "n":
             install_deb_kernel()
 
-    # Common ucm
-    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
-    if path_exists("/tmp/chromebook-ucm-conf/codecs"):
-        cpdir("/tmp/chromebook-ucm-conf/codecs", "/usr/share/alsa/ucm2/codecs")
-    if path_exists("/tmp/chromebook-ucm-conf/platforms"):
-        cpdir("/tmp/chromebook-ucm-conf/platforms", "/usr/share/alsa/ucm2/platforms")
-    if path_exists("/tmp/chromebook-ucm-conf/sof-rt5682"):
-        cpdir("/tmp/chromebook-ucm-conf/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-    if path_exists("/tmp/chromebook-ucm-conf/sof-cs42l42"):
-        cpdir("/tmp/chromebook-ucm-conf/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
+    # UCM
+    install_ucm()
 
     # Install more up-to-date packages from Pop!_OS if running on Ubuntu 22.04 or Linux Mint
     if distro.lower().__contains__("ubuntu_codename=jammy"):
