@@ -79,18 +79,15 @@ def get_board():
         # x86: Get the board name from dmi
         if path_exists("/sys/devices/virtual/dmi/id/"):
             with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
-                device_board = dmi.read().lower().strip()
-        # arm: Get board name from DT compatible
+                device_board = dmi.read()
+        # arm: Get board name from CrOS HWID
         if path_exists("/sys/firmware/devicetree/base/"):
-            with open("/sys/firmware/devicetree/base/compatible", "r") as compat:
-                compat_strings = compat.read().split("\x00")
-                device_board = ""
-                for compat_str in compat_strings:
-                    device_board += compat_str
+            with open("/sys/firmware/devicetree/base/firmware/chromeos/hardware-id", "r") as hwid:
+                device_board = hwid.read().split(" ")[0].split("-")[0]
     else:  # use the board name from the args, for testing only
-        device_board = str(args.board_name[0]).lower().strip()
+        device_board = str(args.board_name[0])
         print_warning(f"Board name override: {device_board}")
-    return device_board
+    return device_board.lower().strip()
 
 
 def match_platform(device_board):
