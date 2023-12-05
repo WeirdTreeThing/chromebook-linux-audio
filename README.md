@@ -10,7 +10,7 @@
 2. `git`
 
 # Supported Devices
-See the [Linux compatibility sheet](https://docs.google.com/spreadsheets/d/1udREts28cIrCL5tnPj3WpnOPOhWk76g3--tfWbtxi6Q/edit#gid=0) for more info.
+See the [Chrultrabook docs](https://chrultrabook.github.io/docs/docs/firmware/supported-devices.html) for more info.
 
 # Officially Supported distros
 1. Arch Linux
