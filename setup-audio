@@ -70,6 +70,11 @@ def install_deb_kernel():
         urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
         bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
         rmfile("/tmp/debian-chrultrabook-kernel.deb")
+        print_warning("Kernel installed. Please reboot and rerun this script to complete setup")
+        if input("Would you like to reboot now? [Y/n] ").lower() != "n":
+            print_warning("Restarting device")
+            bash("reboot")
+            exit()
     except:
         print_error("Error: Failed to install kernel")
 
@@ -289,10 +294,6 @@ if __name__ == "__main__":
 
     # Important message
     print_warning("WARNING: You may run into audio issues, even after running this script. Please report any issues on github.")
-    
-    # platform specific configuration
-    board = get_board()
-    match_platform(board)
 
     # Prompt debian users to install a custom kernel
     with open("/etc/os-release", "r") as file:
@@ -302,6 +303,10 @@ if __name__ == "__main__":
         print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
         if input("Would you like the script to automatically install this kernel? [Y/n] ").lower() != "n":
             install_deb_kernel()
+
+    # platform specific configuration
+    board = get_board()
+    match_platform(board)
 
     # UCM
     install_ucm()
