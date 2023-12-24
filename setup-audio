@@ -70,8 +70,7 @@ def install_deb_kernel():
         urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
         bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
         rmfile("/tmp/debian-chrultrabook-kernel.deb")
-        print_status("Kernel installed, please reboot for changes to take effect.")
-        exit()
+        print_status("Kernel installed")
     except:
         print_error("Error: Failed to install kernel")
 
