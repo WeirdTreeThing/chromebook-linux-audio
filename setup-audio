@@ -70,6 +70,7 @@ def install_deb_kernel():
         urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
         bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
         rmfile("/tmp/debian-chrultrabook-kernel.deb")
+        print_status("Kernel installed")
     except:
         print_error("Error: Failed to install kernel")
 
@@ -178,7 +179,14 @@ def avs_audio():
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
 
-    if not path_exists(f"/lib/modules/{bash('uname -r')}/kernel/sound/soc/intel/avs"):
+    # Check for kernels with avs module enabled
+    kernels_installed = sp.check_output("ls /lib/modules/", shell=True, text=True).strip().split('\n')
+    has_avs = False
+    for kernel_version in kernels_installed:
+        if path_exists(f"/lib/modules/{kernel_version}/kernel/sound/soc/intel/avs"):\
+            has_avs = True
+
+    if not has_avs:
         print_error("Looks like your kernel doesn't have the avs modules. Make sure you are on at least 6.0 with avs enabled")
         exit(0)
 
@@ -289,10 +297,6 @@ if __name__ == "__main__":
 
     # Important message
     print_warning("WARNING: You may run into audio issues, even after running this script. Please report any issues on github.")
-    
-    # platform specific configuration
-    board = get_board()
-    match_platform(board)
 
     # Prompt debian users to install a custom kernel
     with open("/etc/os-release", "r") as file:
@@ -302,6 +306,10 @@ if __name__ == "__main__":
         print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
         if input("Would you like the script to automatically install this kernel? [Y/n] ").lower() != "n":
             install_deb_kernel()
+
+    # platform specific configuration
+    board = get_board()
+    match_platform(board)
 
     # UCM
     install_ucm()
