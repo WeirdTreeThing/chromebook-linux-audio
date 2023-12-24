@@ -180,7 +180,14 @@ def avs_audio():
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
 
-    if not path_exists(f"/lib/modules/{bash('uname -r')}/kernel/sound/soc/intel/avs"):
+    # Check for kernels with avs module enabled
+    kernels_installed = sp.check_output("ls /lib/modules/", shell=True, text=True).strip().split('\n')
+    has_avs = False
+    for kernel_version in kernels_installed:
+        if path_exists(f"/lib/modules/{kernel_version}/kernel/sound/soc/intel/avs"):\
+            has_avs = True
+
+    if not has_avs:
         print_error("Looks like your kernel doesn't have the avs modules. Make sure you are on at least 6.0 with avs enabled")
         exit(0)
 
