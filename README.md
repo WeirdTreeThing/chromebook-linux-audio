@@ -17,7 +17,7 @@ See the [Chrultrabook docs](https://chrultrabook.github.io/docs/docs/firmware/su
 2. Fedora 38
 3. PopOS
 4. Debian 12
-5. Ubuntu (23.10 preferred but 22.04 LTS should also work)
+5. Ubuntu 23.10 (Please do not use LTS)
 6. Linux Mint 
 7. OpenSUSE
 8. Void Linux
