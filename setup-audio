@@ -9,7 +9,7 @@ import subprocess as sp
 from urllib.request import urlopen, urlretrieve
 from functions import *
 
-deb_kernel_url="https://ethanthesleepy.one/public/chrultrabook/debian-kernel/linux-image-6.6.0-chrultrabook_6.6.0-2_amd64.deb"
+deb_kernel_url="https://nightly.link/chrultrabook/debian-kernel/workflows/build/main/debian-kernel.zip"
 libasound2_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2_1.2.8-1pop1~1669155503~22.04~a04c9a1_amd64.deb"
 libasound2_data_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2-data_1.2.8-1pop1~1669155503~22.04~a04c9a1_all.deb"
 
@@ -67,9 +67,10 @@ def ubuntu2204():
 def install_deb_kernel():
     print_status("Updating linux kernel (this may take some time)")
     try:
-        urlretrieve(url=deb_kernel_url, filename="/tmp/debian-chrultrabook-kernel.deb")
-        bash("apt install -y /tmp/debian-chrultrabook-kernel.deb")
-        rmfile("/tmp/debian-chrultrabook-kernel.deb")
+        urlretrieve(url=deb_kernel_url, filename="/tmp/debian-kernel.zip")
+        bash("cd /tmp && unzip debian-kernel.zip")
+        bash("apt install -y /tmp/linux-image-*-chrultrabook_*_amd64.deb")
+        bash("rm /tmp/debian-kernel.zip /tmp/linux-*.deb")
         print_status("Kernel installed")
     except:
         print_error("Error: Failed to install kernel")
