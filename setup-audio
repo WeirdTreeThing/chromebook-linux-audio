@@ -305,7 +305,7 @@ if __name__ == "__main__":
     with open("/etc/os-release", "r") as file:
         distro = file.read()
     if (distro.__contains__("VERSION_CODENAME=bookworm") or distro.__contains__("DEBIAN_CODENAME=bookworm")):
-        print_status("NOTE: Most devices need a custom kernel for functional audio on Debian and distros based on Debian like LMDE")
+        print_status("NOTE: Most devices need a backported kernel for functional audio on Debian and distros based on Debian like LMDE")
         if input("Would you like the script to automatically install this kernel? [Y/n] ").lower() != "n":
             install_deb_kernel()
 
