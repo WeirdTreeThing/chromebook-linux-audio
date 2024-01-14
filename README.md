@@ -8,11 +8,12 @@
 # Requirements
 1. `python 3.10`
 2. `git`
+3. A full install of a supported Linux distro (Live USB will not work)
 
 # Supported Devices
-See the [Chrultrabook docs](https://chrultrabook.github.io/docs/docs/firmware/supported-devices.html) for more info.
+See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supported-devices.html) for more info.
 
-# Officially Supported distros
+# Officially Supported Distros
 1. Arch Linux
 2. Fedora 38
 3. PopOS
