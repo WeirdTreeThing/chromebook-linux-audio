@@ -252,10 +252,6 @@ def sof_audio(platform):
     # JSL needs tplg build from upstream which have not been shipped in distros yet
     cpdir("conf/sof/tplg", "/lib/firmware/intel/sof-tplg")
 
-    # Force sof driver
-    print_status("Installing modprobe config")
-    cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
-    
 
 def hifi2_audio():
     if args.debug:
