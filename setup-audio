@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 
 import argparse
@@ -96,27 +97,30 @@ def match_platform(device_board):
     with open("conf/boards.json", "r") as file:
         boards = json.load(file)
 
-    try:
-        match boards[device_board]:
-            case "bdw" | "byt" | "bsw":
-                hifi2_audio()
-            case "skl" | "kbl":
-                avs_audio()
-            case "apl":
-                apl_audio()
-            case "glk" | "cml" | "jsl" | "tgl" | "adl":
-                sof_audio(boards[device_board])
-            case "stoney" | "picasso" | "cezanne" | "mendocino":
-                amd_audio(boards[device_board])
-            case "mt8183":
-                # mt8183 only needs ucm, so just pass to make the check happy
-                pass
-            case _:
-                print_error(f"Unknown/Unsupported chromebook model: {device_board}")
-                exit(1)
-    except KeyError:
+    if device_board in boards:
+        board_type = boards[device_board]
+        if board_type in ["bdw", "byt", "bsw"]:
+            hifi2_audio()
+        elif board_type in ["skl", "kbl"]:
+            avs_audio()
+        elif board_type == "apl":
+            apl_audio()
+        elif board_type in ["glk", "cml", "jsl", "tgl", "adl"]:
+            sof_audio(board_type)
+        elif board_type in ["stoney", "picasso", "cezanne", "mendocino"]:
+            amd_audio(board_type)
+        elif board_type == "mt8183":
+            # mt8183 only needs ucm, so just pass to make the check happy
+            pass
+        else:
+            print_error(f"Unknown/Unsupported chromebook model: {device_board}")
+            exit(1)
+    else:
         print_error(f"Unknown/Unsupported chromebook model: {device_board}")
         exit(1)
+
+
+
 
 
 def avs_audio():
