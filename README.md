@@ -1,5 +1,7 @@
 <h1 align="center">Python script to enable audio support on Chrome devices</h1>
 
+<h4 align="center">Note: A full install of a supported Linux distro is required! Live USB sessions will not work.</h4>
+
 # Instructions
 1.     git clone https://github.com/WeirdTreeThing/chromebook-linux-audio
 2.     cd chromebook-linux-audio
@@ -10,9 +12,9 @@
 2. `git`
 
 # Supported Devices
-See the [Chrultrabook docs](https://chrultrabook.github.io/docs/docs/firmware/supported-devices.html) for more info.
+See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supported-devices.html) for more info.
 
-# Officially Supported distros
+# Officially Supported Distros
 1. Arch Linux
 2. Fedora 38
 3. PopOS
