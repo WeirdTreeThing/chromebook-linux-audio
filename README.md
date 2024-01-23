@@ -23,6 +23,7 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supporte
 6. Linux Mint 
 7. OpenSUSE
 8. Void Linux
+9. Gentoo Linux
 
 # Other Distros
 Other distros will likely work but will require you to manually install packages.
