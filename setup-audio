@@ -244,7 +244,7 @@ def sof_audio(platform):
     if platform == "adl":
         tplgs = ["cs35l41", "max98357a-rt5682-4ch", "max98357a-rt5682", "max98360a-cs42l42", "max98360a-nau8825", "max98360a-rt5682-2way", "max98360a-rt5682-4ch", "max98360a-rt5682", "max98373-nau8825", "max98390-rt5682", "max98390-ssp2-rt5682-ssp0", "nau8825", "rt1019-nau8825", "rt1019-rt5682", "rt5682", "rt711", "sdw-max98373-rt5682"]
         for tplg in tplgs:
-            tplg_path="lib/firmware/intel/sof-tplg"
+            tplg_path="/lib/firmware/intel/sof-tplg"
             if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg"):
                 bash(f"ln -s {tplg_path}/sof-adl-{tplg}.tplg {tplg_path}/sof-rpl-{tplg}.tplg")
             if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.xz"):
