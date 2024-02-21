@@ -307,6 +307,9 @@ if __name__ == "__main__":
         if input("Would you like the script to automatically install this kernel? [Y/n] ").lower() != "n":
             install_deb_kernel()
 
+    # Some distros (Solus) don't have /etc/modprobe.d/ for some reason
+    mkdir("/etc/modprobe.d", create_parents=True)
+
     # platform specific configuration
     board = get_board()
     match_platform(board)
