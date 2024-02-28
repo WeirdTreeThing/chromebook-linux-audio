@@ -10,8 +10,6 @@ from urllib.request import urlopen, urlretrieve
 from functions import *
 
 deb_kernel_url="https://nightly.link/chrultrabook/debian-kernel/workflows/build/main/debian-kernel.zip"
-libasound2_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2_1.2.8-1pop1~1669155503~22.04~a04c9a1_amd64.deb"
-libasound2_data_url = "https://apt-origin.pop-os.org/release/pool/jammy/libasound2/a04c9a151faa0d94e28e3f7ac411dc8aa083f064/libasound2-data_1.2.8-1pop1~1669155503~22.04~a04c9a1_all.deb"
 
 # parse arguments from the cli. Only for testing/advanced use.
 def process_args():
@@ -48,20 +46,12 @@ def install_ucm():
     cpdir("/tmp/chromebook-ucm-conf/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
 
 
-def ubuntu2204():
-    # Upgrade libasound to fix ucm issues
-    print_status("Updating libasound2 (this may take some time)")
-    try:
-        urlretrieve(url=libasound2_url, filename="/tmp/libasound2.deb")
-        urlretrieve(url=libasound2_data_url, filename="/tmp/libasound2_data.deb")
-        bash("apt install /tmp/libasound2*.deb")
-    except:
-        print_error("Error: Failed to install libasound2")
-
-    # Check for 5.X kernel and update if found
-    kernel_version = sp.check_output("uname -r", shell=True, text=True).strip()
-    if re.search("^5.", kernel_version):
-        install_deb_kernel()
+def ubuntu():
+    print_error("WARNING: UBUNTU IS *NOT* SUPPORTED")
+    print_error("Ubuntu has too many issues that I don't feel like fixing")
+    print_error("If you open an issue on Github and you are running Ubuntu, I will close it right away.")
+    print_error("If you are an Ubuntu user, too bad so sad. Find another audio script.")
+    exit()
 
 
 def install_deb_kernel():
@@ -317,9 +307,9 @@ if __name__ == "__main__":
     # UCM
     install_ucm()
 
-    # Install more up-to-date packages from Pop!_OS if running on Ubuntu 22.04 or Linux Mint
-    if distro.lower().__contains__("ubuntu_codename=jammy"):
-        ubuntu2204()
+    # ubuntu moment :skull:
+    if distro.lower().__contains__("ubuntu_codename"):
+        ubuntu()
 
     # Install wireplumber config to increase headroom
     # fixes instability and crashes on various devices

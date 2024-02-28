@@ -19,10 +19,12 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supporte
 2. Fedora 38
 3. PopOS
 4. Debian 12
-5. Ubuntu 23.10 (Please do not use LTS)
-6. Linux Mint 
-7. OpenSUSE
-8. Void Linux
+5. Linux Mint 
+6. OpenSUSE
+7. Void Linux
+
+# Ubuntu
+Do not use ubuntu, it is not supported.
 
 # Other Distros
 Other distros will likely work but will require you to manually install packages.
