@@ -308,7 +308,7 @@ if __name__ == "__main__":
     install_ucm()
 
     # ubuntu moment :skull:
-    if distro.lower().__contains__("ubuntu_codename"):
+    if distro.lower().__contains__("ubuntu_codename") and not distro.lower().__contains__("pop"):
         ubuntu()
 
     # Install wireplumber config to increase headroom
