@@ -19,7 +19,7 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supporte
 2. Fedora 39
 3. PopOS
 4. Debian 12
-5. Linux Mint 
+5. Linux Mint Debian Edition (LMDE)
 6. OpenSUSE
 7. Void Linux
 
