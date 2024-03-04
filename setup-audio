@@ -236,9 +236,9 @@ def sof_audio(platform):
         for tplg in tplgs:
             tplg_path="/lib/firmware/intel/sof-tplg"
             if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg"):
-                bash(f"ln -s {tplg_path}/sof-adl-{tplg}.tplg {tplg_path}/sof-rpl-{tplg}.tplg")
+                bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg {tplg_path}/sof-rpl-{tplg}.tplg")
             if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.xz"):
-                bash(f"ln -s {tplg_path}/sof-adl-{tplg}.tplg.xz {tplg_path}/sof-rpl-{tplg}.tplg.xz")
+                bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg.xz {tplg_path}/sof-rpl-{tplg}.tplg.xz")
     # JSL needs tplg build from upstream which have not been shipped in distros yet
     cpdir("conf/sof/tplg", "/lib/firmware/intel/sof-tplg")
 
