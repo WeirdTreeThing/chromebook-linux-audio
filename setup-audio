@@ -142,9 +142,17 @@ def avs_audio():
                 print_error("Try again")
             override_avs = False
 
-    # avs tplg is from https://github.com/thesofproject/avs-topology-xml
+    # avs tplg is from https://github.com/thesofproject/avs-topology-xml, but isn't packaged in distros yet
     print_status("Installing topology")
-    cpdir("conf/avs/tplg", "/lib/firmware/intel/avs")
+    mkdir("/tmp/avs_tplg")
+    avs_tplg_ver = "2024.02"
+    avs_tplg_url = f"https://github.com/thesofproject/avs-topology-xml/releases/download/v{avs_tplg_ver}/avs-topology_{avs_tplg_ver}.tar.gz"
+    urlretrieve(url=deb_kernel_url, filename="/tmp/avs_tplg/avs-tplg.tar.gz")
+    bash("tar xf /tmp/avs_tplg/avs-tplg.tar.gz -C /tmp/avs_tplg")
+    mkdir("/lib/firmware/intel/avs", create_parents=True)
+    cpdir("/tmp/avs_tplg/avs-topology/lib/firmware/intel/avs", "/lib/firmware/intel/avs")
+
+    # Force AVS driver since the kernel will use the SKL driver by default
     print_status("Installing modprobe config")
     cpfile("conf/avs/snd-avs.conf", "/etc/modprobe.d/snd-avs.conf")
 
@@ -166,7 +174,7 @@ def avs_audio():
             has_avs = True
 
     if not has_avs:
-        print_error("Looks like your kernel doesn't have the avs modules. Make sure you are on at least 6.0 with avs enabled")
+        print_error("Looks like your kernel doesn't have the avs modules. Make sure you are on at least 6.4 with avs enabled")
         exit(0)
 
 
