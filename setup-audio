@@ -162,6 +162,18 @@ def avs_audio():
         mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
         cpfile("conf/avs/51-avs-dmic.lua", "/etc/wireplumber/main.lua.d/51-avs-dmic.lua")
 
+    # updated avs dsp firmware recently got merged upstream but is not packaged in any distro yet
+    print_status("Installing AVS firmware")
+    mkdir("/lib/firmware/intel/avs/skl")
+    mkdir("/lib/firmware/intel/avs/apl")
+    try:
+        urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/apl/"
+                "dsp_basefw.bin", filename="/lib/firmware/intel/avs/apl/dsp_basefw.bin")
+        urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/skl/"
+                "dsp_basefw.bin", filename="/lib/firmware/intel/avs/skl/dsp_basefw.bin")
+    except:
+        print_error("Error: Failed to download AVS firmware")
+
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
