@@ -58,32 +58,11 @@ def path_exists(path_str: str) -> bool:
 
 # recursively copy files from a dir into another dir
 def cpdir(src_as_str: str, dst_as_string: str) -> None:  # dst_dir must be a full path, including the new dir name
-    def copy_files(src: Path, dst: Path) -> None:
-        # create dst dir if it doesn't exist
-        mkdir(dst.absolute().as_posix(), create_parents=True)
-        for src_file in src.iterdir():
-            if src_file.is_file():
-                dst_file = dst.joinpath(src_file.stem + src_file.suffix)
-                dst_file.write_bytes(src_file.read_bytes())
-            elif src_file.is_dir():
-                if src_file.exists():
-                    new_dst = dst.joinpath(src_file.stem + src_file.suffix)
-                    copy_files(src_file, new_dst)
-                else:
-                    raise FileNotFoundError(f"No such file or directory: {src_file.absolute().as_posix()}")
-
     src_as_path = Path(src_as_str)
     dst_as_path = Path(dst_as_string)
     if src_as_path.exists():
         if not dst_as_path.exists():
             mkdir(dst_as_string)
-        '''
-        try:
-            copy_files(src_as_path, dst_as_path)
-        except RecursionError:
-            print("\033[93m" + f"Failed to copy {root_src} to {root_dst}, using bash" + "\033[0m")
-            bash(f"cp -rp {src_as_path.absolute().as_posix()} {dst_as_path.absolute().as_posix()}")
-        '''
         bash(f"cp -rp {src_as_path.absolute().as_posix()}/* {dst_as_path.absolute().as_posix()}")
     else:
         raise FileNotFoundError(f"No such directory: {src_as_path.absolute().as_posix()}")
