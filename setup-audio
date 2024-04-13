@@ -315,15 +315,15 @@ if __name__ == "__main__":
     # UCM
     install_ucm()
 
-    # ubuntu moment :skull:
-    if distro.lower().__contains__("ubuntu_codename") and not distro.lower().__contains__("pop"):
-        ubuntu()
-
     # Install wireplumber config to increase headroom
     # fixes instability and crashes on various devices
     if path_exists("/usr/bin/wireplumber"):
       print_status("Increasing alsa headroom (fixes instability)")
       mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
       cpfile("conf/common/51-increase-headroom.lua", "/etc/wireplumber/main.lua.d/51-increase-headroom.lua")
+
+    # ubuntu moment :skull:
+    if distro.lower().__contains__("ubuntu_codename") and not distro.lower().__contains__("pop"):
+        ubuntu()
 
     print_header("Audio installed successfully! Reboot to finish setup.")
