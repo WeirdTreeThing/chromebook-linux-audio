@@ -16,7 +16,7 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supporte
 
 # Officially Supported Distros
 1. Arch Linux
-2. Fedora 39
+2. Fedora 39/40
 3. PopOS
 4. Debian 12
 5. Linux Mint Debian Edition (LMDE)
