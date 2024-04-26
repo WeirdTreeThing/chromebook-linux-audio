@@ -165,7 +165,7 @@ def avs_audio():
             cpfile("conf/avs/51-avs-dmic.lua", "/etc/wireplumber/main.lua.d/51-avs-dmic.lua")
         else:
             mkdir("/etc/wireplumber/wireplumber.conf.d/", create_parents=True)
-            cpfile("conf/common/51-avs-dmic.conf", "/etc/wireplumber/wireplumber.conf.d/51-avs-dmic.conf")
+            cpfile("conf/avs/51-avs-dmic.conf", "/etc/wireplumber/wireplumber.conf.d/51-avs-dmic.conf")
 
     # updated avs dsp firmware recently got merged upstream but is not packaged in any distro yet
     print_status("Installing AVS firmware")
