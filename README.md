@@ -24,7 +24,7 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supporte
 7. Void Linux
 
 # Ubuntu
-Do not use ubuntu, it is not supported.
+If you want the best experience, don't use Ubuntu. If you run into any issues, you are on your own.
 
 # Other Distros
 Other distros will likely work but will require you to manually install packages.

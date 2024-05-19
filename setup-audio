@@ -51,6 +51,7 @@ def ubuntu():
     print_error("Ubuntu has too many issues that I don't feel like fixing")
     print_error("If you open an issue on Github and you are running Ubuntu, I will close it right away.")
     print_error("If you are an Ubuntu user, too bad so sad. Find another audio script.")
+    print_error("Despite not being supported, the script will still try to get audio working on Ubuntu. If it works for you, great. If it doesn't, that's too bad.")
     exit()
 
 
