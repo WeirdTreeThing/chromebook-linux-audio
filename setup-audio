@@ -240,7 +240,7 @@ def sof_audio(platform):
     # Install sof firmware
     if not path_exists("/lib/firmware/intel/sof"):
         print_status("Installing SOF firmware")
-        install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
+        install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware", "sof-firmware")
 
     # Special tplg cases
     # RPL devices load tplg with a different file name than ADL, despite being the exact same file as their ADL counterparts
@@ -269,7 +269,7 @@ def hifi2_audio():
 
     print_status("Forcing SOF driver in debug mode")
     if not path_exists("/lib/firmware/intel/sof"):
-        install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware")
+        install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware", "sof-firmware")
     cpfile("conf/sof/hifi2-sof.conf", "/etc/modprobe.d/hifi2-sof.conf")
 
 

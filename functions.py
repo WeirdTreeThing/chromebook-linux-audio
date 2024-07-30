@@ -118,7 +118,7 @@ def print_header(message: str) -> None:
 #                             PACKAGE MANAGER FUNCTIONS                               #
 #######################################################################################
 def install_package(arch_package: str = "", deb_package: str = "", rpm_package: str = "", suse_package: str = "",
-                    void_package: str = ""):
+                    void_package: str = "", alpine_package: str = ""):
     with open("/etc/os-release", "r") as file:
         distro = file.read()
     if distro.lower().__contains__("arch"):
@@ -131,5 +131,7 @@ def install_package(arch_package: str = "", deb_package: str = "", rpm_package: 
         bash(f"zypper --non-interactive install {suse_package}")
     elif distro.lower().__contains__("fedora"):
         bash(f"dnf install -y {rpm_package}")
+    elif distro.lower().__contains__("alpine"):
+        bash(f"apk add --no-interactive {alpine_package}")
     else:
         print_error(f"Unknown package manager! Please install {arch_package} using your package manager.")
