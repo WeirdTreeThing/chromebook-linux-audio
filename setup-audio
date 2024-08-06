@@ -283,7 +283,7 @@ def amd_audio(platform):
         cpdir("conf/amd-sof/tplg", "/lib/firmware/amd/sof-tplg")
     elif platform == "stoney":
         print_warning("WARNING: Your audio will not work unless you install a custom kernel")
-        print_warning("You can get a prebuilt kernel from https://fs.nightcore.monster/chromebook/stoney/kernel/latest.tar.xz")
+        print_warning("You can get a prebuilt kernel from https://nightly.link/chrultrabook/stoney-kernel/workflows/build/main/stoney-kernel.zip")
 
 
 if __name__ == "__main__":
