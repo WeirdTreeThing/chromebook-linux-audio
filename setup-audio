@@ -147,7 +147,7 @@ def avs_audio():
     print_status("Installing topology")
     mkdir("/tmp/avs_tplg")
     avs_tplg_ver = "2024.02"
-    avs_tplg_url = f"https://github.com/thesofproject/avs-topology-xml/releases/download/v{avs_tplg_ver}/avs-topology_{avs_tplg_ver}.tar.gz"
+    avs_tplg_url = f"https://github.com/thesofproject/avs-topology-xml/archive/refs/tags/v{avs_tplg_ver}.tar.gz"
     urlretrieve(url=avs_tplg_url, filename="/tmp/avs_tplg/avs-tplg.tar.gz")
     bash("tar xf /tmp/avs_tplg/avs-tplg.tar.gz -C /tmp/avs_tplg")
     mkdir("/lib/firmware/intel/avs", create_parents=True)
