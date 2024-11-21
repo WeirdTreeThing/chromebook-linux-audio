@@ -15,16 +15,17 @@
 See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supported-devices.html) for more info.
 
 # Officially Supported Distros
-1. Arch Linux
-2. Fedora 39/40
-3. PopOS
-4. Debian 12
+1. Alpine Linux
+2. Arch Linux
+3. Debian 12
+4. Fedora 40/41
 5. Linux Mint Debian Edition (LMDE)
 6. OpenSUSE
-7. Void Linux
+7. PopOS
+8. Void Linux
 
 # Ubuntu
-If you want the best experience, don't use Ubuntu. If you run into any issues, you are on your own.
+I do not officially support Ubuntu, and by that I mean I don't provide support for it. The script will warn you of this. However, I do not prevent you from running the script on Ubuntu. Despite the warning from the script, it will still run everything it normally would. If you run the script on Ubuntu and it works, great. If it doesn't work, you are on your own.
 
 # Other Distros
-Other distros will likely work but will require you to manually install packages.
+Other distros will likely work but will require you to manually install packages. The script will print a list of any packages you may need to install.
