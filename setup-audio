@@ -253,6 +253,13 @@ def sof_audio(platform):
                 bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg.xz {tplg_path}/sof-rpl-{tplg}.tplg.xz")
     # JSL needs tplg build from upstream which have not been shipped in distros yet
     cpdir("conf/sof/tplg", "/lib/firmware/intel/sof-tplg")
+    # sof-adl-max98360a-cs42l42.tplg is symlinked to sof-adl-max98360a-rt5682.tplg in ChromeOS
+    tplg_file1="/lib/firmware/intel/sof-tplg/sof-adl-max98360a-rt5682.tplg"
+    tplg_file2="/lib/firmware/intel/sof-tplg/sof-adl-max98360a-cs42l42.tplg"
+    if path_exists(f"{tplg_file1}"):
+        bash(f"ln -sf {tplg_file1} {tplg_file2}")
+    if path_exists(f"{tplg_file1}.xz"):
+        bash(f"ln -sf {tplg_file1}.xz {tplg_file2}.xz")
 
 
 def hifi2_audio():
