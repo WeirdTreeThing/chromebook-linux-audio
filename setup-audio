@@ -22,7 +22,7 @@ def process_args():
                         help="Disable audio debugging.")
     parser.add_argument("--force-avs-install", action="store_true", dest="force_avs_install", default=False,
                         help="DANGEROUS: Force enable AVS install. MIGHT CAUSE PERMANENT DAMAGE TO SPEAKERS!")
-    parser.add_argument("--branch", dest="branch_name", type=str, nargs=1, default=["main"],
+    parser.add_argument("--branch", dest="branch_name", type=str, nargs=1, default=["standalone"],
                         help="Use a different branch when cloning ucm. FOR DEVS AND TESTERS ONLY!")
     return parser.parse_args()
 
@@ -30,20 +30,14 @@ def process_args():
 def install_ucm():
     print_status("Installing UCM configuration")
     try:
-        bash("rm -rf /tmp/chromebook-ucm-conf")
-        bash(f"git clone https://github.com/WeirdTreeThing/chromebook-ucm-conf -b {args.branch_name[0]} /tmp/chromebook-ucm-conf")
+        bash("rm -rf /tmp/alsa-ucm-conf-cros")
+        bash(f"git clone https://github.com/WeirdTreeThing/alsa-ucm-conf-cros -b {args.branch_name[0]} /tmp/alsa-ucm-conf-cros")
     except:
         print_error("Error: Failed to clone UCM repo")
         exit(1)
 
-    for platform in ["adl", "apl", "avs", "cezanne", "cml", "glk", "jsl", "mendocino", "mt8183", "picasso", "stoney"]:
-        cpdir(f"/tmp/chromebook-ucm-conf/{platform}", "/usr/share/alsa/ucm2/conf.d")
-
-    cpdir("/tmp/chromebook-ucm-conf/common", "/usr/share/alsa/ucm2/common")
-    cpdir("/tmp/chromebook-ucm-conf/codecs", "/usr/share/alsa/ucm2/codecs")
-    cpdir("/tmp/chromebook-ucm-conf/platforms", "/usr/share/alsa/ucm2/platforms")
-    cpdir("/tmp/chromebook-ucm-conf/sof-rt5682", "/usr/share/alsa/ucm2/conf.d/sof-rt5682")
-    cpdir("/tmp/chromebook-ucm-conf/sof-cs42l42", "/usr/share/alsa/ucm2/conf.d/sof-cs42l42")
+    cpdir("/tmp/alsa-ucm-conf-cros/ucm2", "/usr/share/alsa/ucm2/")
+    cpdir("/tmp/alsa-ucm-conf-cros/overrides", "/usr/share/alsa/ucm2/conf.d")
 
 
 def ubuntu():
