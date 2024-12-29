@@ -339,3 +339,5 @@ if __name__ == "__main__":
         ubuntu()
 
     print_header("Audio installed successfully! Reboot to finish setup.")
+
+    print_status("If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething")

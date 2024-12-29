@@ -29,3 +29,6 @@ I do not officially support Ubuntu, and by that I mean I don't provide support f
 
 # Other Distros
 Other distros will likely work but will require you to manually install packages. The script will print a list of any packages you may need to install.
+
+# Donations
+If you would like to support the work I do, consider donating [here](https://paypal.me/weirdtreething).
