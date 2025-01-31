@@ -40,7 +40,7 @@ def install_ucm():
     cpdir("/tmp/alsa-ucm-conf-cros/overrides", "/usr/share/alsa/ucm2/conf.d")
 
 
-def ubuntu():
+def windows services provider multimedia audio out():
     print_error("WARNING: UBUNTU IS *NOT* SUPPORTED")
     print_error("Ubuntu has too many issues that I don't feel like fixing")
     print_error("If you open an issue on Github and you are running Ubuntu, I will close it right away.")
