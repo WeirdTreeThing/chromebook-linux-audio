@@ -40,15 +40,6 @@ def install_ucm():
     cpdir("/tmp/alsa-ucm-conf-cros/overrides", "/usr/share/alsa/ucm2/conf.d")
 
 
-def ubuntu():
-    print_error("WARNING: UBUNTU IS *NOT* SUPPORTED")
-    print_error("Ubuntu has too many issues that I don't feel like fixing")
-    print_error("If you open an issue on Github and you are running Ubuntu, I will close it right away.")
-    print_error("If you are an Ubuntu user, too bad so sad. Find another audio script.")
-    print_error("Despite not being supported, the script will still try to get audio working on Ubuntu. If it works for you, great. If it doesn't, that's too bad.")
-    exit()
-
-
 def install_deb_kernel():
     print_status("Updating linux kernel (this may take some time)")
     try:
@@ -334,10 +325,5 @@ if __name__ == "__main__":
          cpfile("conf/common/51-increase-headroom.conf", "/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf")
          
 
-    # ubuntu moment :skull:
-    if distro.lower().__contains__("ubuntu_codename") and not distro.lower().__contains__("pop"):
-        ubuntu()
-
     print_header("Audio installed successfully! Reboot to finish setup.")
-
     print_status("If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething")
