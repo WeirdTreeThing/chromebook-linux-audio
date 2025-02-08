@@ -99,18 +99,18 @@ def avs_audio():
             print_error(
                 "WARNING: Your device has max98357a and can cause permanent damage to your speakers if you set the volume too loud!")
             while input('Type "I understand the risk of permanently damaging my speakers" in all caps to continue: ')\
-            != "I UNDERSTAND THE RISK OF PERMANENTLY DAMAGING MY SPEAKERS":
+                != "I UNDERSTAND THE RISK OF PERMANENTLY DAMAGING MY SPEAKERS":
                 print_error("Try again")
             override_avs = True
         else:
             print_error(
                 "WARNING: Your device has max98357a and can cause permanent damage to your speakers if you "
-                "set the volume too loud! As a safety precaution devices with max98357a have speakers "
-                "disabled until a fix is in place. Headphones and HDMI audio are safe from this.")
+                    "set the volume too loud! As a safety precaution devices with max98357a have speakers "
+                    "disabled until a fix is in place. Headphones and HDMI audio are safe from this.")
             print_question("If you want to disable this check, restart the script with --force-avs-install")
 
             while input('Type "I Understand my speakers will not work since my device has max98357a!" in all caps to continue: ')\
-            != "I UNDERSTAND MY SPEAKERS WILL NOT WORK SINCE MY DEVICE HAS MAX98357A!":
+                != "I UNDERSTAND MY SPEAKERS WILL NOT WORK SINCE MY DEVICE HAS MAX98357A!":
                 print_error("Try again")
             override_avs = False
 
@@ -129,7 +129,7 @@ def avs_audio():
     # Install wireplumber config for dmic if wireplumber is installed on the system
     if path_exists("/usr/bin/wireplumber"):
         print_status("Forcing avs_dmic to use S16LE format")
-      # This is needed since newer wireplumber versions 0.5+ use a different configuration format
+        # This is needed since newer wireplumber versions 0.5+ use a different configuration format
         if "0.4" in sp.check_output("wireplumber -v", shell=True, text=True).strip():
             mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
             cpfile("conf/avs/51-avs-dmic.lua", "/etc/wireplumber/main.lua.d/51-avs-dmic.lua")
@@ -143,9 +143,9 @@ def avs_audio():
     mkdir("/lib/firmware/intel/avs/apl")
     try:
         urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/apl/"
-                "dsp_basefw.bin", filename="/lib/firmware/intel/avs/apl/dsp_basefw.bin")
+            "dsp_basefw.bin", filename="/lib/firmware/intel/avs/apl/dsp_basefw.bin")
         urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/skl/"
-                "dsp_basefw.bin", filename="/lib/firmware/intel/avs/skl/dsp_basefw.bin")
+            "dsp_basefw.bin", filename="/lib/firmware/intel/avs/skl/dsp_basefw.bin")
     except:
         print_error("Error: Failed to download AVS firmware")
 
@@ -170,7 +170,7 @@ def apl_audio():
     print_status("SOF: Stable but doesn't work with headphones.")
     print_status("AVS: Unstable and can cause damage to speakers but supports all audio hardware.")
     print_error("NOTE: Speakers are disabled on AVS as a safety precaution. (use --force-avs-install to override)"
-                "Your speakers will still work on SOF though.")
+        "Your speakers will still work on SOF though.")
 
     while True:
         user_input = input("Which driver would you like to use? [sof/avs]: ")
@@ -291,16 +291,16 @@ if __name__ == "__main__":
     # Install wireplumber config to increase headroom
     # fixes instability and crashes on various devices
     if path_exists("/usr/bin/wireplumber"):
-      print_status("Increasing alsa headroom (fixes instability)")
+        print_status("Increasing alsa headroom (fixes instability)")
 
-      # This is needed since newer wireplumber versions 0.5+ use a different configuration format
-      if "0.4" in sp.check_output("wireplumber -v", shell=True, text=True).strip():
-          mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
-          cpfile("conf/common/51-increase-headroom.lua", "/etc/wireplumber/main.lua.d/51-increase-headroom.lua")
-      else:
-         mkdir("/etc/wireplumber/wireplumber.conf.d/", create_parents=True)
-         cpfile("conf/common/51-increase-headroom.conf", "/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf")
-         
+    # This is needed since newer wireplumber versions 0.5+ use a different configuration format
+    if "0.4" in sp.check_output("wireplumber -v", shell=True, text=True).strip():
+        mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
+        cpfile("conf/common/51-increase-headroom.lua", "/etc/wireplumber/main.lua.d/51-increase-headroom.lua")
+    else:
+        mkdir("/etc/wireplumber/wireplumber.conf.d/", create_parents=True)
+        cpfile("conf/common/51-increase-headroom.conf", "/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf")
+
 
     print_header("Audio installed successfully! Reboot to finish setup.")
     print_status("If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething")
