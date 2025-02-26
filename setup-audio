@@ -80,15 +80,6 @@ def match_platform(device_board):
 
 
 def avs_audio():
-    if args.debug:
-        print_status(f"{args.debug} AVS debugging")
-        if args.debug == "Enabling":
-            cpfile("conf/avs/snd-avs-dbg.conf", "/etc/modprobe.d/snd-avs-dbg.conf")
-        else:
-            rmfile("/etc/modprobe.d/snd-avs-dbg.conf")
-        print_status("Done, please reboot for changes to take effect.")
-        exit()
-
     print_status("Installing AVS")
     # Only show the warning to devices with max98357a
     override_avs = False
@@ -182,15 +173,6 @@ def apl_audio():
 
 
 def sof_audio(platform):
-    if args.debug:
-        print_status(f"{args.debug} SOF debugging")
-        if args.debug == "Enabling":
-            cpfile("conf/sof/snd-sof-dbg.conf", "/etc/modprobe.d/snd-sof-dbg.conf")
-        else:
-            rmfile("/etc/modprobe.d/snd-sof-dbg.conf")
-        print_status("Done, please reboot for changes to take effect.")
-        exit()
-
     print_status("Installing SOF")
 
     # Install sof firmware
@@ -219,15 +201,6 @@ def sof_audio(platform):
 
 
 def hifi2_audio():
-    if args.debug:
-        print_status(f"{args.debug} SOF debugging")
-        if args.debug == "Enabling":
-            cpfile(f"conf/sof/hifi2-sof-dbg.conf", "/etc/modprobe.d/hifi2-sof-dbg.conf")
-        else:
-            rmfile("/etc/modprobe.d/hifi2-sof-dbg.conf")
-        print_status("Done, please reboot for changes to take effect.")
-        exit()
-
     print_status("Forcing SOF driver in debug mode")
     if not path_exists("/lib/firmware/intel/sof"):
         install_package("sof-firmware", "firmware-sof-signed", "alsa-sof-firmware", "sof-firmware", "sof-firmware", "sof-firmware")
