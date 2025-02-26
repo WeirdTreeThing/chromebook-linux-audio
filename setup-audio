@@ -213,8 +213,8 @@ def amd_audio(platform):
         print_status("Installing SOF firmware")
         mkdir("/lib/firmware/amd/sof/community", create_parents=True)
         mkdir("/lib/firmware/amd/sof-tplg", create_parents=True)
-        cpdir("conf/amd-sof/fw", "/lib/firmware/amd/sof/community")
-        cpdir("conf/amd-sof/tplg", "/lib/firmware/amd/sof-tplg")
+        cpdir("blobs/mdn/fw", "/lib/firmware/amd/sof/community")
+        cpdir("blobs/mdn/tplg", "/lib/firmware/amd/sof-tplg")
     elif platform == "stoney":
         print_warning("WARNING: Your audio will not work unless you install a custom kernel")
         print_warning("You can get a prebuilt kernel from https://nightly.link/chrultrabook/stoney-kernel/workflows/build/main/stoney-kernel.zip")
