@@ -40,18 +40,19 @@ def install_ucm():
 
 def get_board():
     if not args.board_name[0]:
-        # x86: Get the board name from dmi
-        if path_exists("/sys/devices/virtual/dmi/id/"):
-            with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
-                device_board = dmi.read()
-        # arm: Get board name from CrOS HWID
-        if path_exists("/sys/firmware/devicetree/base/"):
-            with open("/sys/firmware/devicetree/base/firmware/chromeos/hardware-id", "r") as hwid:
-                device_board = hwid.read().split(" ")[0].split("-")[0]
+        with open("/sys/devices/virtual/dmi/id/product_name", "r") as dmi:
+            device_board = dmi.read()
     else:  # use the board name from the args, for testing only
         device_board = str(args.board_name[0])
         print_warning(f"Board name override: {device_board}")
     return device_board.lower().strip()
+
+
+def check_arch():
+    # dmi doesnt exist on arm chromebooks
+    if not path_exists("/sys/devices/virtual/dmi/id/"):
+        print_error("ARM Chromebooks are not supported by this script. See your distro's documentation for audio support status.")
+        exit(1)
 
 
 def match_platform(device_board):
@@ -70,9 +71,6 @@ def match_platform(device_board):
                 sof_audio(boards[device_board])
             case "stoney" | "picasso" | "cezanne" | "mendocino":
                 amd_audio(boards[device_board])
-            case "mt8183":
-                # mt8183 only needs ucm, so just pass to make the check happy
-                pass
             case _:
                 print_error(f"Unknown/Unsupported chromebook model: {device_board}")
                 exit(1)
@@ -261,6 +259,7 @@ def amd_audio(platform):
 
 
 if __name__ == "__main__":
+    check_arch()
     args = process_args()
 
     # Restart script as root
