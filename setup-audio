@@ -289,15 +289,8 @@ if __name__ == "__main__":
     # fixes instability and crashes on various devices
     if path_exists("/usr/bin/wireplumber"):
         print_status("Increasing alsa headroom (fixes instability)")
-
-    # This is needed since newer wireplumber versions 0.5+ use a different configuration format
-    if "0.4" in sp.check_output("wireplumber -v", shell=True, text=True).strip():
-        mkdir("/etc/wireplumber/main.lua.d/", create_parents=True)
-        cpfile("conf/common/51-increase-headroom.lua", "/etc/wireplumber/main.lua.d/51-increase-headroom.lua")
-    else:
         mkdir("/etc/wireplumber/wireplumber.conf.d/", create_parents=True)
         cpfile("conf/common/51-increase-headroom.conf", "/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf")
-
 
     print_header("Audio installed successfully! Reboot to finish setup.")
     print_status("If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething")
