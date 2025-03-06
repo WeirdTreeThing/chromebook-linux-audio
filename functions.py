@@ -292,22 +292,6 @@ def avs_config(args):
     mkdir("/lib/firmware/intel/avs", create_parents=True)
     cpdir("/tmp/avs_tplg/avs-topology/lib/firmware/intel/avs", "/lib/firmware/intel/avs")
 
-    # Force AVS driver since the kernel will use the SKL driver by default
-    print_header("Installing modprobe config")
-    cpfile("conf/avs/snd-avs.conf", "/etc/modprobe.d/snd-avs.conf")
-
-    # updated avs dsp firmware recently got merged upstream but is not packaged in any distro yet
-    print_header("Installing AVS firmware")
-    mkdir("/lib/firmware/intel/avs/skl")
-    mkdir("/lib/firmware/intel/avs/apl")
-    try:
-        urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/apl/"
-            "dsp_basefw.bin", filename="/lib/firmware/intel/avs/apl/dsp_basefw.bin")
-        urlretrieve("https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/avs/skl/"
-            "dsp_basefw.bin", filename="/lib/firmware/intel/avs/skl/dsp_basefw.bin")
-    except:
-        print_error("Error: Failed to download AVS firmware")
-
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
