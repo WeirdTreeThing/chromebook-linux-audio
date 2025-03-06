@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     # Platform specific configuration
     platform = get_platform()
-    platform_config(platform)
+    platform_config(platform, args)
 
     # Install downstream UCM configuration
     install_ucm(args.branch_name[0])

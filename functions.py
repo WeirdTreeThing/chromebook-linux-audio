@@ -139,12 +139,12 @@ def install_package(arch_package: str = "", deb_package: str = "", rpm_package: 
 #######################################################################################
 #                          PLATFORM-SPECIFIC CONFIG FUNCTIONS                         #
 #######################################################################################
-def platform_config(platform):
+def platform_config(platform, args):
     match platform:
         case "bdw" | "byt" | "bsw":
             hifi2_sof_config()
         case "skl" | "kbl" | "apl":
-            avs_config()
+            avs_config(args)
         case "adl":
             adl_sof_config()
         case "st":
@@ -261,7 +261,7 @@ def st_warning():
     print_warning("You can get a prebuilt kernel from https://nightly.link/chrultrabook/stoney-kernel/workflows/build/main/stoney-kernel.zip")
 
 
-def avs_config():
+def avs_config(args):
     # Only show the warning to devices with max98357a
     override_avs = False
     if path_exists("/sys/bus/acpi/devices/MX98357A:00"):
