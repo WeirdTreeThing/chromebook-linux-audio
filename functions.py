@@ -346,6 +346,7 @@ def check_kernel_config(platform):
     else:
         # throw hands up in the air crying
         print_error("Unable to read kernel config!")
+        return
 
     # List of kernel config strings for audio hardware
     module_configs = []
