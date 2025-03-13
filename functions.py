@@ -147,6 +147,8 @@ def platform_config(platform, args):
             avs_config(args)
         case "adl":
             adl_sof_config()
+        case "mtl":
+            mtl_sof_config()
         case "st":
             st_warning()
         case "mdn":
@@ -212,6 +214,9 @@ def get_platform():
             case "google_nissa":
                 print_status("Detected Intel Alderlake-N")
                 platform = "adl"
+            case "google_rex":
+                print_status("Detected Intel Meteorlake")
+                platform = "mtl"
             case "google_kahlee":
                 print_status("Detected AMD StoneyRidge")
                 platform = "st"
@@ -315,6 +320,10 @@ def adl_sof_config():
     if path_exists(f"{tplg_file1}.xz"):
         bash(f"ln -sf {tplg_file1}.xz {tplg_file2}.xz")
 
+def mtl_sof_config():
+    print_header("Enabling SOF driver")
+    cpfile("conf/sof/mtl-sof.conf", "/etc/modprobe.d/mtl-sof.conf")
+
 def hifi2_sof_config():
     print_header("Forcing SOF driver in debug mode")
     cpfile("conf/sof/hifi2-sof.conf", "/etc/modprobe.d/hifi2-sof.conf")
@@ -370,6 +379,8 @@ def check_kernel_config(platform):
             module_configs += ["SND_SOC_SOF_ICELAKE", "SND_SOC_INTEL_SOF_RT5682_MACH", "SND_SOC_INTEL_SOF_DA7219_MACH", "SND_SOC_INTEL_SOF_CS42L42_MACH"]
         case "adl":
             module_configs += ["SND_SOC_SOF_ALDERLAKE", "SND_SOC_INTEL_SOF_CS42L42_MACH", "SND_SOC_INTEL_SOF_DA7219_MACH", "SND_SOC_INTEL_SOF_RT5682_MACH", "SND_SOC_INTEL_SOF_NAU8825_MACH", "SND_SOC_INTEL_SOF_SSP_AMP_MACH"]
+        case "mtl":
+            module_configs += [""] # TODO: fill this out
         case "st":
             module_configs += ["SND_SOC_AMD_ACP", "SND_SOC_AMD_CZ_DA7219MX98357_MACH"]
         case "pco":
