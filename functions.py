@@ -143,12 +143,17 @@ def platform_config(platform, args):
     match platform:
         case "bdw" | "byt" | "bsw":
             hifi2_sof_config()
+            check_sof_fw()
         case "skl" | "kbl" | "apl":
             avs_config(args)
+        case "glk" | "cml" | "tgl" | "jsl":
+            check_sof_fw()
         case "adl":
             adl_sof_config()
+            check_sof_fw()
         case "mtl":
             mtl_sof_config()
+            check_sof_fw()
         case "st":
             st_warning()
         case "mdn":
@@ -300,6 +305,11 @@ def avs_config(args):
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
+
+def check_sof_fw():
+    if not path_exists("/lib/firmware/intel/sof"):
+        print_error("SOF firmware is missing, audio will not work!")
+        print_error("Please install the SOF firmware package (usually sof-firmware) with your package manager")
 
 def adl_sof_config():
     # Special tplg cases
