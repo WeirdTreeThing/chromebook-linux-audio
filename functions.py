@@ -302,6 +302,9 @@ def avs_config(args):
     mkdir("/lib/firmware/intel/avs", create_parents=True)
     cpdir("/tmp/avs_tplg/avs-topology/lib/firmware/intel/avs", "/lib/firmware/intel/avs")
 
+    print_header("Enabling AVS driver")
+    cpfile("conf/avs/snd-avs.conf", "/etc/modprobe.d/snd-avs.conf")
+
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
