@@ -323,8 +323,10 @@ def adl_sof_config():
         tplg_path="/lib/firmware/intel/sof-tplg"
         if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg"):
             bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg {tplg_path}/sof-rpl-{tplg}.tplg")
-            if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.xz"):
-                bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg.xz {tplg_path}/sof-rpl-{tplg}.tplg.xz")
+        if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.xz"):
+            bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg.xz {tplg_path}/sof-rpl-{tplg}.tplg.xz")
+        if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.zst"):
+            bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg.zst {tplg_path}/sof-rpl-{tplg}.tplg.zst")
     # sof-adl-max98360a-cs42l42.tplg is symlinked to sof-adl-max98360a-rt5682.tplg in ChromeOS
     tplg_file1="/lib/firmware/intel/sof-tplg/sof-adl-max98360a-rt5682.tplg"
     tplg_file2="/lib/firmware/intel/sof-tplg/sof-adl-max98360a-cs42l42.tplg"
@@ -332,6 +334,8 @@ def adl_sof_config():
         bash(f"ln -sf {tplg_file1} {tplg_file2}")
     if path_exists(f"{tplg_file1}.xz"):
         bash(f"ln -sf {tplg_file1}.xz {tplg_file2}.xz")
+    if path_exists(f"{tplg_file1}.zst"):
+        bash(f"ln -sf {tplg_file1}.xz {tplg_file2}.zst")
 
 def mtl_sof_config():
     print_header("Enabling SOF driver")
