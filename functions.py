@@ -267,8 +267,8 @@ def mdn_config():
     cpdir("blobs/mdn/tplg", "/lib/firmware/amd/sof-tplg")
 
 def st_warning():
-    print_warning("WARNING: Audio on AMD StoneyRidge Chromebooks will not work with the kernel provided by your distro as the audio driver requires a special kernel config that cannot be shipped in any distro. A custom kernel is required.")
-    print_warning("You can get a prebuilt kernel from https://nightly.link/chrultrabook/stoney-kernel/workflows/build/main/stoney-kernel.zip")
+    print_warning("WARNING: Audio on AMD StoneyRidge Chromebooks requires a patched kernel.")
+    print_warning("You can get a prebuilt kernel for Debian/Ubuntu/Fedora from https://chrultrabook.sakamoto.pl/stoneyridge-kernel/")
 
 
 def avs_config(args):
