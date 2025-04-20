@@ -6,6 +6,27 @@ from threading import Thread
 from time import sleep
 
 
+
+# LIVE USB SESSION PATCH
+# This logic reroutes configuration/data writes to /tmp-based locations when running in a live USB session.
+LIVE_USB = Path('/run/live') in Path('/').glob('**/*') or Path('/rofs').exists()
+
+def safe_path(target: str) -> str:
+    if not LIVE_USB:
+        return target
+    # Redirect writes to RAM-backed tmpfs mirrors
+    if target.startswith('/etc'):
+        tmp_target = '/tmp/etc' + target[4:]
+    elif target.startswith('/lib'):
+        tmp_target = '/tmp/lib' + target[4:]
+    elif target.startswith('/usr'):
+        tmp_target = '/tmp/usr' + target[4:]
+    else:
+        tmp_target = '/tmp' + target
+    Path(tmp_target).parent.mkdir(parents=True, exist_ok=True)
+    return tmp_target
+
+
 #######################################################################################
 #                               PATHLIB FUNCTIONS                                     #
 #######################################################################################
@@ -59,7 +80,7 @@ def path_exists(path_str: str) -> bool:
 # recursively copy files from a dir into another dir
 def cpdir(src_as_str: str, dst_as_string: str) -> None:  # dst_dir must be a full path, including the new dir name
     src_as_path = Path(src_as_str)
-    dst_as_path = Path(dst_as_string)
+    dst_as_path = Path(safe_path(dst_as_string))
     if src_as_path.exists():
         if not dst_as_path.exists():
             mkdir(dst_as_string)
@@ -70,7 +91,7 @@ def cpdir(src_as_str: str, dst_as_string: str) -> None:  # dst_dir must be a ful
 
 def cpfile(src_as_str: str, dst_as_str: str) -> None:  # "/etc/resolv.conf", "/var/some_config/resolv.conf"
     src_as_path = Path(src_as_str)
-    dst_as_path = Path(dst_as_str)
+    dst_as_path = Path(safe_path(dst_as_str))
     if src_as_path.exists():
         dst_as_path.write_bytes(src_as_path.read_bytes())
     else:
