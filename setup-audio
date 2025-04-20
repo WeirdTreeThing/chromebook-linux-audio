@@ -35,7 +35,7 @@ if __name__ == "__main__":
         os.execlpe('sudo', *sudo_args)
 
     # Some distros (Solus) don't have /etc/modprobe.d/ for some reason
-    mkdir("/etc/modprobe.d", create_parents=True)
+    mkdir(safe_path("/etc/modprobe.d"", create_parents=True)
 
     # Platform specific configuration
     platform = get_platform()
@@ -51,8 +51,8 @@ if __name__ == "__main__":
     # fixes instability and crashes on various devices
     if path_exists("/usr/bin/wireplumber"):
         print_header("Increasing alsa headroom (fixes instability)")
-        mkdir("/etc/wireplumber/wireplumber.conf.d/", create_parents=True)
-        cpfile("conf/common/51-increase-headroom.conf", "/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf")
+        mkdir(safe_path("/etc/wireplumber/wireplumber.conf.d/"", create_parents=True)
+        cpfile("conf/common/51-increase-headroom.conf", safe_path("/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf"))
 
     print_status("Audio setup finished! Reboot to complete setup.")
     print_status("If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio")
