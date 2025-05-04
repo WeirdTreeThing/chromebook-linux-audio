@@ -160,7 +160,7 @@ def platform_config(platform, args):
             mdn_config()
 
 def get_platform():
-    # first check if we are on a chromeb{ook,ox,ase,let} (either sys_vendor or board_vendor includes "google" (case-insensitive for old devices where it was GOOGLE))
+    # first check if we are on a chromeb{ook,ox,ase,let} (either sys_vendor or product_family includes "google" (case-insensitive for old devices where it was GOOGLE))
     # product_family *usually* will tell us the platform
     # some platforms (jsl, byt) dont have a product_family so instead check the id of pci device 00:00.0 (chipset/pch)
     # for some reason, cyan also doesnt have this set even though every other bsw board does
@@ -168,14 +168,11 @@ def get_platform():
     print_header("Detecting platform")
     platform = ""
     sv = ""
-    bv = ""
     pf = ""
     pn = ""
 
     with open("/sys/class/dmi/id/sys_vendor") as sys_vendor:
         sv = sys_vendor.read().strip().lower()
-    with open("/sys/class/dmi/id/board_vendor") as board_vendor:
-        bv = board_vendor.read().strip().lower()
     with open("/sys/class/dmi/id/product_family") as product_family:
         pf = product_family.read().strip().lower()
     with open("/sys/class/dmi/id/product_name") as product_name:
@@ -186,7 +183,7 @@ def get_platform():
         print_error("This script can not and will not do anything in the crostini vm!")
         exit(1)
 
-    if not "google" in sv and not "google" in bv and not "google" in pf:
+    if not "google" in sv and not "google" in pf:
         print_error("This script is not supported on non-Chrome devices!")
         exit(1)
 
