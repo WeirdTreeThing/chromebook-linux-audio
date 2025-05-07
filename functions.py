@@ -413,7 +413,7 @@ def check_kernel_config(platform):
             case "max98927":
                 module_configs.append("SND_SOC_MAX98927")
             case "max98390":
-                module_configs.append("SOC_SOC_MAX98390")
+                module_configs.append("SND_SOC_MAX98390")
             case "rt1011":
                 module_configs.append("SND_SOC_RT1011")
             case "rt1015":
