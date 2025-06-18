@@ -345,6 +345,12 @@ def hifi2_sof_config():
 #######################################################################################
 #                                   GENERAL FUNCTIONS                                 #
 #######################################################################################
+def check_nix():
+    with open("/etc/os-release") as os:
+        if "ID=nixos" in os.read():
+            print_error("NixOS is not supported")
+            exit(1)
+
 def check_arch():
     # dmi doesnt exist on arm chromebooks
     if not path_exists("/sys/devices/virtual/dmi/id/"):

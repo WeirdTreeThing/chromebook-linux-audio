@@ -21,6 +21,7 @@ def process_args():
     return parser.parse_args()
 
 if __name__ == "__main__":
+    check_nix()
     check_arch()
     args = process_args()
 
