@@ -18,9 +18,9 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supporte
 1. Alpine Linux edge
 2. Arch Linux
 3. Debian Testing
-4. Fedora 41
+4. Fedora 42
 5. OpenSUSE Tumbleweed
-6. Ubuntu 24.10
+6. Ubuntu 25.04
 7. Void Linux
 
 # Other Distros
