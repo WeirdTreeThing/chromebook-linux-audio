@@ -314,11 +314,11 @@ def check_sof_fw():
 
 def symlink_tplg(path, tplg1, tplg2):
     if path_exists(f"{path}/{tplg1}.tplg"):
-        bash(f"ln -sf {path}/{tplg1}.tplg {tplg_path}/{tplg2}.tplg")
+        bash(f"ln -sf {path}/{tplg1}.tplg {path}/{tplg2}.tplg")
     if path_exists(f"{path}/{tplg1}.tplg.xz"):
-        bash(f"ln -sf {path}/{tplg1}.tplg.xz {tplg_path}/{tplg2}.tplg.xz")
+        bash(f"ln -sf {path}/{tplg1}.tplg.xz {path}/{tplg2}.tplg.xz")
     if path_exists(f"{path}/{tplg1}.tplg.zst"):
-        bash(f"ln -sf {path}/{tplg1}.tplg.zst {tplg_path}/{tplg2}.tplg.zst")
+        bash(f"ln -sf {path}/{tplg1}.tplg.zst {path}/{tplg2}.tplg.zst")
 
 def adl_sof_config():
     # Special tplg cases
