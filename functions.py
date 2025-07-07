@@ -266,6 +266,7 @@ def mdn_config():
 def st_warning():
     print_warning("WARNING: Audio on AMD StoneyRidge Chromebooks requires a patched kernel.")
     print_warning("You can get a prebuilt kernel for Debian/Ubuntu/Fedora from https://chrultrabook.sakamoto.pl/stoneyridge-kernel/")
+    print_warning("For other distros, a patch file is included in that same link, under the patches directory.")
 
 
 def avs_config(args):
