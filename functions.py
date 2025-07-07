@@ -312,28 +312,23 @@ def check_sof_fw():
         print_error("SOF firmware is missing, audio will not work!")
         print_error("Please install the SOF firmware package (usually sof-firmware) with your package manager")
 
+def symlink_tplg(path, tplg1, tplg2):
+    if path_exists(f"{path}/{tplg1}.tplg"):
+        bash(f"ln -sf {path}/{tplg1}.tplg {tplg_path}/{tplg2}.tplg")
+    if path_exists(f"{path}/{tplg1}.tplg.xz"):
+        bash(f"ln -sf {path}/{tplg1}.tplg.xz {tplg_path}/{tplg2}.tplg.xz")
+    if path_exists(f"{path}/{tplg1}.tplg.zst"):
+        bash(f"ln -sf {path}/{tplg1}.tplg.zst {tplg_path}/{tplg2}.tplg.zst")
+
 def adl_sof_config():
     # Special tplg cases
     # RPL devices load tplg with a different file name than ADL, despite being the exact same file as their ADL counterparts
     # sof-bin currently doesn't include these symlinks, so we create them ourselves
     tplgs = ["cs35l41", "max98357a-rt5682-4ch", "max98357a-rt5682", "max98360a-cs42l42", "max98360a-nau8825", "max98360a-rt5682-2way", "max98360a-rt5682-4ch", "max98360a-rt5682", "max98373-nau8825", "max98390-rt5682", "max98390-ssp2-rt5682-ssp0", "nau8825", "rt1019-nau8825", "rt1019-rt5682", "rt5682", "rt711", "sdw-max98373-rt5682"]
     for tplg in tplgs:
-        tplg_path="/lib/firmware/intel/sof-tplg"
-        if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg"):
-            bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg {tplg_path}/sof-rpl-{tplg}.tplg")
-        if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.xz"):
-            bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg.xz {tplg_path}/sof-rpl-{tplg}.tplg.xz")
-        if path_exists(f"{tplg_path}/sof-adl-{tplg}.tplg.zst"):
-            bash(f"ln -sf {tplg_path}/sof-adl-{tplg}.tplg.zst {tplg_path}/sof-rpl-{tplg}.tplg.zst")
+        symlink_tplg("/lib/firmware/intel/sof-tplg", f"sof-adl-{tplg}", f"sof-rpl-{tplg}")
     # sof-adl-max98360a-cs42l42.tplg is symlinked to sof-adl-max98360a-rt5682.tplg in ChromeOS
-    tplg_file1="/lib/firmware/intel/sof-tplg/sof-adl-max98360a-rt5682.tplg"
-    tplg_file2="/lib/firmware/intel/sof-tplg/sof-adl-max98360a-cs42l42.tplg"
-    if path_exists(f"{tplg_file1}"):
-        bash(f"ln -sf {tplg_file1} {tplg_file2}")
-    if path_exists(f"{tplg_file1}.xz"):
-        bash(f"ln -sf {tplg_file1}.xz {tplg_file2}.xz")
-    if path_exists(f"{tplg_file1}.zst"):
-        bash(f"ln -sf {tplg_file1}.xz {tplg_file2}.zst")
+    symlink_tplg("/lib/firmware/intel/sof-tplg", "sof-adl-max98360a-rt5682", "sof-adl-max98360a-cs42l42")
 
 def mtl_sof_config():
     print_header("Enabling SOF driver")
