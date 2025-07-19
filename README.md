@@ -12,7 +12,7 @@
 2. `git`
 
 # Supported Devices
-See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/firmware/supported-devices.html) for more info.
+See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/devices.html) for more info.
 
 # Officially Supported Distros
 1. Alpine Linux edge
