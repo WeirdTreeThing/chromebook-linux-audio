@@ -55,6 +55,13 @@ if __name__ == "__main__":
         mkdir("/etc/wireplumber/wireplumber.conf.d/", create_parents=True)
         cpfile("conf/common/51-increase-headroom.conf", "/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf")
 
+    # Sometimes the alsa save/restore service doesn't init the sound card for some reason, so do it here instead
+    # This won't work for soundcards which don't currently exist, such as ones that need firmware installed
+    # by this script, but those aren't known to have this issue
+    # the ; true is there because that command will return a non-zero value for some reason
+    print_status("Initializing sound card")
+    bash("alsactl init; true")
+
     print_status("Audio setup finished! Reboot to complete setup.")
     print_status("If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio")
     print_status("If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething")
