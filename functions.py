@@ -183,7 +183,7 @@ def get_platform():
         print_error("This script can not and will not do anything in the crostini vm!")
         exit(1)
 
-    if not "google" in sv and not "google" in pf:
+    if not "google" in sv and not "google" in pf and not Path("/dev/cros_ec").exists():
         print_error("This script is not supported on non-Chrome devices!")
         exit(1)
 
