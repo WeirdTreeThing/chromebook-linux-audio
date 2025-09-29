@@ -320,6 +320,14 @@ def symlink_tplg(path, tplg1, tplg2):
     if path_exists(f"{path}/{tplg1}.tplg.zst"):
         bash(f"ln -sf {path}/{tplg1}.tplg.zst {path}/{tplg2}.tplg.zst")
 
+def install_downstream_tplg(tplg, dest):
+    if path_exists(f"{dest}"):
+        cpfile(f"{tplg}", f"{dest}")
+    if path_exists(f"{dest}.xz"):
+        bash(f"xz -c {tplg} > {dest}.xz")
+    if path_exists(f"{dest}.zst"):
+        bash(f"zst {tplg} -o {dest}.zst")
+
 def adl_sof_config():
     # Special tplg cases
     # RPL devices load tplg with a different file name than ADL, despite being the exact same file as their ADL counterparts
@@ -329,6 +337,8 @@ def adl_sof_config():
         symlink_tplg("/lib/firmware/intel/sof-tplg", f"sof-adl-{tplg}", f"sof-rpl-{tplg}")
     # sof-adl-max98360a-cs42l42.tplg is symlinked to sof-adl-max98360a-rt5682.tplg in ChromeOS
     symlink_tplg("/lib/firmware/intel/sof-tplg", "sof-adl-max98360a-rt5682", "sof-adl-max98360a-cs42l42")
+    # upstream sof-adl-rt1019-rt5682 is broken currently
+    install_downstream_tplg("blobs/adl/sof-adl-rt1019-rt5682.tplg", "/lib/firmware/intel/sof-tplg/sof-adl-rt1019-rt5682.tplg")
 
 def mtl_sof_config():
     print_header("Enabling SOF driver")
