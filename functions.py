@@ -251,8 +251,8 @@ def get_platform():
         if id == "0x0f00":
             print_status("Detected Intel Baytrail")
             return "byt"
-        # JSL special case - check if pci dev id is 0x4e22
-        if id == "0x4e22":
+        # JSL special case - check if pci dev id is 0x4e22 or 0x4e12
+        if id == "0x4e22" or id == "0x4e12":
             print_status("Detected Intel Jasperlake")
             return "jsl"
 
