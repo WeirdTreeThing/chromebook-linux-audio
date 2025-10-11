@@ -207,6 +207,9 @@ def get_platform():
             case "google_hatch" | "google_puff":
                 print_status("Detected Intel Cometlake")
                 platform = "cml"
+            case "google_dedede":
+                print_status("Detected Intel Jasperlake")
+                platform = "jsl"
             case "google_volteer":
                 print_status("Detected Intel Tigerlake")
                 platform = "tgl"
