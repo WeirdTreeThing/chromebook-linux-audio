@@ -8,7 +8,7 @@
 3.     ./setup-audio
 
 # Requirements
-1. `python 3.10`
+1. `python 3.10 or newer`
 2. `git`
 
 # Supported Devices
