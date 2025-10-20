@@ -17,10 +17,10 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/devices.html) for
 # Officially Supported Distros
 1. Alpine Linux edge
 2. Arch Linux
-3. Debian Testing
+3. Debian Trixie
 4. Fedora 42
 5. OpenSUSE Tumbleweed
-6. Ubuntu 25.04
+6. Ubuntu 25.10
 7. Void Linux
 
 # Other Distros
