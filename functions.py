@@ -295,14 +295,6 @@ def avs_config(args):
                 print_error("Try again")
             override_avs = False
 
-    # avs tplg is from https://github.com/thesofproject/avs-topology-xml, but isn't packaged in distros yet
-    print_header("Installing topology")
-    mkdir("/tmp/avs_tplg")
-    avs_tplg_ver = "2024.02"
-    bash(f"tar xf ./blobs/avs-topology_{avs_tplg_ver}.tar.gz -C /tmp/avs_tplg")
-    mkdir("/lib/firmware/intel/avs", create_parents=True)
-    cpdir("/tmp/avs_tplg/avs-topology/lib/firmware/intel/avs", "/lib/firmware/intel/avs")
-
     print_header("Enabling AVS driver")
     cpfile("conf/avs/snd-avs.conf", "/etc/modprobe.d/snd-avs.conf")
 
