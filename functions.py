@@ -517,7 +517,7 @@ def check_os_release():
     with open("/etc/os-release", "r") as rel:
         release = rel.read()
     if "noble" in release or "jammy" in release or "plucky" in release:
-        print_error("Warning: Your is not officially supported. Expect Issues.")
+        print_error("Warning: Your distro is not officially supported. Expect Issues.")
         print_error("Please try a supported distro first before opening an issue. See the README for a list of supported distros.")
         return False
     return True
