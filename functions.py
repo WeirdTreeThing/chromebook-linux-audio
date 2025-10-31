@@ -504,7 +504,7 @@ def install_ucm(branch):
     print_header("Installing UCM configuration")
     try:
         bash("rm -rf /tmp/alsa-ucm-conf-cros")
-        bash(f"git clone https://github.com/WeirdTreeThing/alsa-ucm-conf-cros -b {branch} /tmp/alsa-ucm-conf-cros")
+        bash(f"git clone --depth 1 https://github.com/WeirdTreeThing/alsa-ucm-conf-cros -b {branch} /tmp/alsa-ucm-conf-cros")
     except:
         print_error("Error: Failed to clone UCM repo")
         exit(1)
