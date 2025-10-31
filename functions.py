@@ -511,3 +511,13 @@ def install_ucm(branch):
 
     cpdir("/tmp/alsa-ucm-conf-cros/ucm2", "/usr/share/alsa/ucm2/")
     cpdir("/tmp/alsa-ucm-conf-cros/overrides", "/usr/share/alsa/ucm2/conf.d")
+
+def check_os_release():
+    release = ""
+    with open("/etc/os-release", "r") as rel:
+        release = rel.read()
+    if "noble" in release or "jammy" in release or "plucky" in release:
+        print_error("Warning: Your is not officially supported. Expect Issues.")
+        print_error("Please try a supported distro first before opening an issue. See the README for a list of supported distros.")
+        return False
+    return True
