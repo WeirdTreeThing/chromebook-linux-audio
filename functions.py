@@ -321,7 +321,7 @@ def install_downstream_tplg(tplg, dest):
     if path_exists(f"{dest}.xz"):
         bash(f"xz -c {tplg} > {dest}.xz")
     if path_exists(f"{dest}.zst"):
-        bash(f"zst {tplg} -o {dest}.zst")
+        bash(f"zstd {tplg} -o {dest}.zst")
 
 def adl_sof_config():
     # Special tplg cases
