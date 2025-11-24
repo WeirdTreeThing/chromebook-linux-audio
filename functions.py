@@ -338,6 +338,8 @@ def adl_sof_config():
 def mtl_sof_config():
     print_header("Enabling SOF driver")
     cpfile("conf/sof/mtl-sof.conf", "/etc/modprobe.d/mtl-sof.conf")
+    # upstream sof-mtl-rt5650 is broken currently
+    install_downstream_tplg("blobs/mtl/sof-mtl-rt5650.tplg", "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt5650.tplg")
 
 def hifi2_sof_config():
     print_header("Forcing SOF driver in debug mode")
