@@ -142,8 +142,7 @@ def install_package(arch_package: str = "", deb_package: str = "", rpm_package: 
 def platform_config(platform, args):
     match platform:
         case "bdw" | "byt" | "bsw":
-            hifi2_sof_config()
-            check_sof_fw()
+            sst_atom_config()
         case "skl" | "kbl" | "apl":
             avs_config(args)
         case "glk" | "cml" | "tgl" | "jsl":
@@ -341,9 +340,30 @@ def mtl_sof_config():
     # upstream sof-mtl-rt5650 is broken currently
     install_downstream_tplg("blobs/mtl/sof-mtl-rt5650.tplg", "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt5650.tplg")
 
-def hifi2_sof_config():
-    print_header("Forcing SOF driver in debug mode")
-    cpfile("conf/sof/hifi2-sof.conf", "/etc/modprobe.d/hifi2-sof.conf")
+def sst_atom_config():
+    print_status("There are two audio drivers available for your device: SST and SOF")
+    print_status("Try SST first. If SST doesn't work, try SOF instead.")
+
+    while True:
+        user_input = input("Which driver would you like to use? [sof/sst]: ")
+        if user_input.lower() == "sof":
+            print_status("Using sof")
+            # Remove sst modprobe config if it exists
+            rmfile("/etc/modprobe.d/snd-sst.conf")
+            # Install sof modprobe config
+            cpfile("conf/sof/hifi2-sof.conf", "/etc/modprobe.d/hifi2-sof.conf")
+            check_sof_fw()
+            break
+        elif user_input.lower() == "sst":
+            print_status("Using sst")
+            # Remove sof modprobe config if it exists
+            rmfile("/etc/modprobe.d/hifi2-sof.conf")
+            # Install sst modprobe config
+            cpfile("conf/common/snd-sst.conf", "/etc/modprobe.d/snd-sst.conf")
+            break
+        else:
+            print_error(f"Invalid option: {user_input}")
+            continue
 
 #######################################################################################
 #                                   GENERAL FUNCTIONS                                 #
