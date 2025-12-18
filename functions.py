@@ -337,8 +337,9 @@ def adl_sof_config():
 def mtl_sof_config():
     print_header("Enabling SOF driver")
     cpfile("conf/sof/mtl-sof.conf", "/etc/modprobe.d/mtl-sof.conf")
-    # upstream sof-mtl-rt5650 is broken currently
+    # upstream mtl tplgs are broken currently
     install_downstream_tplg("blobs/mtl/sof-mtl-rt5650.tplg", "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt5650.tplg")
+    install_downstream_tplg("blobs/mtl/sof-mtl-rt1019-rt5682.tplg", "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt1019-rt5682.tplg")
 
 def sst_atom_config():
     print_status("There are two audio drivers available for your device: SST and SOF")
