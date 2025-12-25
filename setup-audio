@@ -60,6 +60,12 @@ if __name__ == "__main__":
     print_status("Initializing sound card")
     bash("alsactl init; true")
 
+    # Clear WirePlumber state to ensure fresh device detection
+    print_info("Clearing audio session state")
+    bash("rm -rf ~/.local/state/wireplumber/")
+    bash("rm -rf ~/.config/pulse/")
+    # Note: Not deleting ~/.config/pipewire/ to preserve user customizations
+
     print_status("Audio setup finished! Reboot to complete setup.")
     if check_os_release():
         print_status("If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio")
