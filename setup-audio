@@ -8,8 +8,6 @@ from functions import *
 # parse arguments from the cli. Only for testing/advanced use.
 def process_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-b", dest="board_name", type=str, nargs=1, default=[""],
-                        help="Override board name.")
     parser.add_argument("--enable-debug", action='store_const', const="Enabling", dest="debug",
                         help="Enable audio debugging.")
     parser.add_argument("--disable-debug", action='store_const', const="Disabling", dest="debug",
@@ -61,6 +59,12 @@ if __name__ == "__main__":
     # the ; true is there because that command will return a non-zero value for some reason
     print_status("Initializing sound card")
     bash("alsactl init; true")
+
+    # Clear WirePlumber state to ensure fresh device detection
+    print_info("Clearing audio session state")
+    bash("rm -rf ~/.local/state/wireplumber/")
+    bash("rm -rf ~/.config/pulse/")
+    # Note: Not deleting ~/.config/pipewire/ to preserve user customizations
 
     print_status("Audio setup finished! Reboot to complete setup.")
     if check_os_release():

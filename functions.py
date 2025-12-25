@@ -114,6 +114,9 @@ def print_question(message: str) -> None:
 def print_header(message: str) -> None:
     print("\033[95m" + message + "\033[0m", flush=True)
 
+def print_info(message: str) -> None:
+    print("\033[96m" + message + "\033[0m", flush=True)
+
 #######################################################################################
 #                             PACKAGE MANAGER FUNCTIONS                               #
 #######################################################################################
