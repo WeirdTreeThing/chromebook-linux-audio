@@ -302,6 +302,14 @@ def avs_config(args):
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
 
 def check_sof_fw():
+    # Certain devices (only HP?) set the system vendor to not Google on stock firmware, which breaks chromebook detection in the dspcfg driver. If this is the case, force the sof driver.
+    sv = ""
+    with open("/sys/class/dmi/id/sys_vendor") as sys_vendor:
+        sv = sys_vendor.read().strip().lower()
+    if not sv == "google":
+        print_header("Enabling SOF driver")
+        cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
+
     if not path_exists("/lib/firmware/intel/sof"):
         print_error("SOF firmware is missing, audio will not work!")
         print_error("Please install the SOF firmware package (usually sof-firmware) with your package manager")
@@ -336,7 +344,7 @@ def adl_sof_config():
 
 def mtl_sof_config():
     print_header("Enabling SOF driver")
-    cpfile("conf/sof/mtl-sof.conf", "/etc/modprobe.d/mtl-sof.conf")
+    cpfile("conf/sof/snd-sof.conf", "/etc/modprobe.d/snd-sof.conf")
     # upstream mtl tplgs are broken currently
     install_downstream_tplg("blobs/mtl/sof-mtl-rt5650.tplg", "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt5650.tplg")
     install_downstream_tplg("blobs/mtl/sof-mtl-rt1019-rt5682.tplg", "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt1019-rt5682.tplg")
