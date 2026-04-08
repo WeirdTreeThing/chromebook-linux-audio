@@ -1,4 +1,4 @@
-<h1 align="center">Bash script to enable audio support on Chrome devices</h1>
+<h1 align="center">Bash script to enable/fix audio support on Chrome devices running mainline Linux</h1>
 
 <h4 align="center">Note: A full install of a supported Linux distro is required! Live USB sessions will not work.</h4>
 
