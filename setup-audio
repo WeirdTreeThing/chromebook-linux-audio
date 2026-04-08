@@ -385,7 +385,7 @@ check_kernel_config () {
   else
     # throw hands up in the air crying
     echo_error "Unable to read kernel config"
-    exit
+    return
   fi
 
   declare -ag module_configs
