@@ -1,4 +1,4 @@
-<h1 align="center">Python script to enable audio support on Chrome devices</h1>
+<h1 align="center">Bash script to enable audio support on Chrome devices</h1>
 
 <h4 align="center">Note: A full install of a supported Linux distro is required! Live USB sessions will not work.</h4>
 
@@ -8,8 +8,9 @@
 3.     ./setup-audio
 
 # Requirements
-1. `python 3.10 or newer`
-2. `git`
+1. `bash`
+2. `basic UNIX utils`
+3. `git`
 
 # Supported Devices
 See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/devices.html) for more info.

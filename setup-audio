@@ -1,68 +1,667 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
 
-import argparse
-import os
-import sys
-from functions import *
+# Chrome audio script by WeirdTreeThing
+# Uses some stuff from https://github.com/MrChromebox/scripts
 
-# parse arguments from the cli. Only for testing/advanced use.
-def process_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-b", dest="board_name", type=str, nargs=1, default=[""],
-                        help="Override board name.")
-    parser.add_argument("--enable-debug", action='store_const', const="Enabling", dest="debug",
-                        help="Enable audio debugging.")
-    parser.add_argument("--disable-debug", action='store_const', const="Disabling", dest="debug",
-                        help="Disable audio debugging.")
-    parser.add_argument("--force-avs-install", action="store_true", dest="force_avs_install", default=False,
-                        help="DANGEROUS: Force enable AVS install. MIGHT CAUSE PERMANENT DAMAGE TO SPEAKERS!")
-    parser.add_argument("--branch", dest="branch_name", type=str, nargs=1, default=["standalone"],
-                        help="Use a different branch when cloning ucm. FOR DEVS AND TESTERS ONLY!")
-    return parser.parse_args()
+### Global data ###
+FORCE_AVS_INSTALL=false
+OVERRIDE_PLATFORM=
+OVERRIDE_BRANCH=
+PLATFORM=
+declare -ag CODECS
 
-if __name__ == "__main__":
-    check_nix()
-    check_arch()
-    args = process_args()
+### AUDIO STUFF ###
 
-    # Restart script as root
-    if os.geteuid() != 0:
-        # make the two people that use doas happy
-        if path_exists("/usr/bin/doas"):
-            doas_args = ['doas', sys.executable] + sys.argv + [os.environ]
-            os.execlpe('doas', *doas_args)
-        # other 99 percent of linux users
-        sudo_args = ['sudo', sys.executable] + sys.argv + [os.environ]
-        os.execlpe('sudo', *sudo_args)
+get_platform() {
+  # first check if we are on a chromeb{ook,ox,ase,let} (either sys_vendor or product_family includes "google" (case-insensitive for old devices where it was GOOGLE))
+  # product_family *usually* will tell us the platform
+  # some platforms (jsl on stock firmware, byt) dont have a product_family so instead check the id of pci device 00:00.0 (chipset/pch)
+  # for some reason, cyan also doesnt have this set even though every other bsw board does
+  # samus and buddy are BDW but use intel SST
+  if [ -n "$OVERRIDE_PLATFORM" ]; then
+    echo_status "Using platform override: $OVERRIDE_PLATFORM"
+    PLATFORM=$OVERRIDE_PLATFORM
+    return
+  fi
 
-    # Some distros (Solus) don't have /etc/modprobe.d/ for some reason
-    mkdir("/etc/modprobe.d", create_parents=True)
+  echo_status "Detecting platform"
 
-    # Platform specific configuration
-    platform = get_platform()
-    platform_config(platform, args)
+  local sv
+  local pf
+  local pn
+  local id
 
-    # Install downstream UCM configuration
-    install_ucm(args.branch_name[0])
+  sv="$(cat /sys/class/dmi/id/sys_vendor | tr '[:upper:]' '[:lower:]')"
+  pf="$(cat /sys/class/dmi/id/product_family | tr '[:upper:]' '[:lower:]')"
+  pn="$(cat /sys/class/dmi/id/product_name | tr '[:upper:]' '[:lower:]')"
 
-    # Check currently running kernel for all required modules
-    check_kernel_config(platform)
+  # some people are morons
+  if [ "$pn" = "crosvm" ]; then
+    echo_error "This script can not and will not do anything in the crostini vm!"
+    exit
+  fi
 
-    # Install wireplumber config to increase headroom
-    # fixes instability and crashes on various devices
-    if path_exists("/usr/bin/wireplumber"):
-        print_header("Increasing alsa headroom (fixes instability)")
-        mkdir("/etc/wireplumber/wireplumber.conf.d/", create_parents=True)
-        cpfile("conf/common/51-increase-headroom.conf", "/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf")
+  if [ ! "$sv" = "google" ] && [ ! "$pf" = "google" ] && [ ! -c "/dev/cros_ec" ]; then
+    echo_error "This script is not supported on non-Chrome devices!"
+    exit
+  fi
 
-    # Sometimes the alsa save/restore service doesn't init the sound card for some reason, so do it here instead
-    # This won't work for soundcards which don't currently exist, such as ones that need firmware installed
-    # by this script, but those aren't known to have this issue
-    # the ; true is there because that command will return a non-zero value for some reason
-    print_status("Initializing sound card")
-    bash("alsactl init; true")
+  if [ -n "$pf" ]; then
+    case $pf in
+    "intel_strago")
+      echo_info "Detected Intel Braswell"
+      PLATFORM="bsw"
+      ;;
+    "google_glados")
+      echo_info "Detected Intel Skylake"
+      PLATFORM="skl"
+      ;;
+    "google_coral" | "google_reef")
+      echo_info "Detected Intel Apollolake"
+      PLATFORM="apl"
+      ;;
+    "google_atlas" | "google_poppy" | "google_nami" | "google_nautilus" | "google_nocturne" | "google_rammus" | "google_soraka" | "google_eve" | "google_fizz" | "google_kalista" | "google_endeavour")
+      echo_info "Detected Intel Kabylake"
+      PLATFORM="kbl"
+      ;;
+    "google_octopus")
+      echo_info "Detected Intel Geminilake"
+      PLATFORM="glk"
+      ;;
+    "google_hatch" | "google_puff")
+      echo_info "Detected Intel Cometlake"
+      PLATFORM="cml"
+      ;;
+    "google_dedede")
+      echo_info "Detected Intel Jasperlake"
+      PLATFORM="jsl"
+      ;;
+    "google_volteer")
+      echo_info "Detected Intel Tigerlake"
+      PLATFORM="tgl"
+      ;;
+    "google_brya" | "google_brask")
+      echo_info "Detected Intel Alderlake"
+      PLATFORM="adl"
+      ;;
+    "google_nissa")
+      echo_info "Detected Intel Alderlake-N"
+      PLATFORM="adl"
+      ;;
+    "google_rex")
+      echo_info "Detected Intel Meteorlake"
+      PLATFORM="mtl"
+      ;;
+    "google_kahlee")
+      echo_info "Detected AMD StoneyRidge"
+      PLATFORM="st"
+      ;;
+    "google_zork")
+      echo_info "Detected AMD Picasso/Dali"
+      PLATFORM="pco"
+      ;;
+    "google_guybrush")
+      echo_info "Detected AMD Cezanne"
+      PLATFORM="czn"
+      ;;
+    "google_skyrim")
+      echo_info "Detected AMD Mendocino"
+      PLATFORM="mdn"
+      ;;
+    *)
+      echo_error "Unknown platform/baseboard: $pf"
+      exit
+      ;;
+    esac
+  else
+    # Cyan special case
+    if [ "$pn" = "cyan" ]; then
+      echo_info "Detected Intel Braswell"
+      PLATFORM="bsw"
+    fi
+    # BDW special cases (every other BDW uses HDA audio)
+    if [ "$pn" = "samus" ] || [ "$pn" = "buddy" ]; then
+      echo_info "Detected Intel Broadwell"
+      PLATFORM="bdw"
+    fi
 
-    print_status("Audio setup finished! Reboot to complete setup.")
-    if check_os_release():
-        print_status("If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio")
-        print_status("If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething")
+    id="$(cat /sys/bus/pci/devices/0000:00:00.0/device)"
+    # BYT special case - check if pci dev id is 0x0f00
+    if [ "$id" = "0x0f00" ]; then
+      echo_info "Detected Intel Baytrail"
+      PLATFORM="byt"
+    fi
+    # JSL special case - check if pci dev id is 0x4e22 or 0x4e12 or 0x4e26
+    if [ "$id" = "0x4e22" ] || [ "$id" = "0x4e12" ] || [ "$id" = "0x4e26" ]; then
+      echo_info "Detected Intel Jasperlake"
+      PLATFORM="jsl"
+    fi
+  fi
+
+  if [ -z "$PLATFORM" ]; then
+    echo_error "Unable to detect platform"
+    exit
+  fi
+}
+
+platform_config() {
+  get_platform
+
+  case $PLATFORM in
+  "bdw" | "byt" | "bsw")
+    sst_atom_config
+    ;;
+  "skl" | "kbl" | "apl")
+    avs_config
+    ;;
+  "glk" | "cml" | "tgl" | "jsl")
+    generic_sof_config
+    ;;
+  "adl")
+    adl_sof_config
+    generic_sof_config
+    ;;
+  "mtl")
+    mtl_sof_config
+    generic_sof_config
+    ;;
+  "st")
+    st_warning
+    ;;
+  "mdn")
+    mdn_config
+    ;;
+  esac
+}
+
+sst_atom_config() {
+  local input
+  echo_info "Two audio drivers are available for your device: SST and SOF."
+  echo_info "Try SST first. If there are issues, try SOF."
+
+  while true; do
+    echo -ne "${GREEN}Select a driver [sst/sof]: ${RESET}"
+    read -re input
+    case $input in
+    "sst")
+      echo_info "Using SST"
+      rm /etc/modprobe.d/hifi2-sof.conf
+      cp conf/common/snd-sst.conf /etc/modprobe.d/
+      break
+      ;;
+    "sof")
+      echo_info "Using SOF"
+      rm /etc/modprobe.d/snd-sst.conf
+      cp conf/sof/hifi2-sof.conf /etc/modprobe.d/
+      break
+      ;;
+    *)
+      echo_error "Invalid selection"
+      ;;
+    esac
+  done
+}
+
+avs_config() {
+  local input
+  echo_status "Enabling AVS driver"
+  cp conf/avs/snd-avs.conf /etc/modprobe.d
+
+  if [ ! -d "/sys/bus/acpi/devices/MX98357A:00" ]; then
+    return
+  fi
+
+  echo_warning "WARNING: Your device has the max98357a speaker amplifier.\nThere is not a proper volume limiter for this amp, and turning the\nvolume up too high could cause damage to your speakers."
+  if $FORCE_AVS_INSTALL; then
+    echo_warning "Please type the following in all caps to continue:"
+    echo_info "I understand the risk of permanently damaging my speakers"
+    while true; do
+      read -re input
+      if [ "$input" = "I UNDERSTAND THE RISK OF PERMANENTLY DAMAGING MY SPEAKERS" ]; then
+        rm /etc/modprobe.d/avs-max98357a.conf
+        break
+      else
+       echo_error "Invalid input"
+      fi
+    done
+  else
+    echo_info "For the safety of your device's speakers, they will be disabled. Headphones and HDMI audio will still work.\nYou can run this script with the '-f' flag to disable this check and force enable speakers."
+    cp conf/avs/avs-max98357a.conf /etc/modprobe.d
+  fi
+  
+}
+
+generic_sof_config() {
+  # Certain devices (only HP?) set the system vendor to not Google on stock firmware, which breaks chromebook detection in the dspcfg driver. If this is the case, force the sof driver.
+  local sv
+  sv="$(cat /sys/class/dmi/id/sys_vendor | tr '[:upper:]' '[:lower:]')"
+  if [ ! "$sv" = "google" ]; then
+    echo_status "Enabling SOF driver"
+    cp conf/sof/snd-sof.conf /etc/modprobe.d
+  fi
+
+  if [ ! -d /lib/firmware/intel/sof ]; then
+    echo_error "SOF firmware is missing, audio will not work."
+    echo_error "Please install the SOF firmware package (usually sof-firmware) with your package manager"
+  fi
+}
+
+adl_sof_config() {
+  # Special tplg cases
+  # RPL devices load tplg with a different file name than ADL, despite being the exact same file as their ADL counterparts
+  # sof-bin currently doesn't include these symlinks, so we create them ourselves
+  tplgs=("cs35l41" "max98357a-rt5682-4ch" "max98357a-rt5682" "max98360a-cs42l42" "max98360a-da7219" "max98360a-nau8825" "max98360a-rt5682-2way" "max98360a-rt5682-4ch" "max98360a-rt5682" "max98373-nau8825" "max98390-rt5682" "max98390-ssp2-rt5682-ssp0" "nau8825" "rt1019-nau8825" "rt1019-rt5682" "rt5682" "rt711" "sdw-max98373-rt5682")
+  for tplg in ${tplgs[@]}; do
+    symlink_tplg "/lib/firmware/intel/sof-tplg" "sof-adl-${tplg}" "sof-rpl-${tplg}"
+  done
+  # sof-adl-max98360a-cs42l42.tplg is symlinked to sof-adl-max98360a-rt5682.tplg in ChromeOS
+  symlink_tplg "/lib/firmware/intel/sof-tplg" "sof-adl-max98360a-rt5682" "sof-adl-max98360a-cs42l42"
+  # upstream sof-adl-rt1019-rt5682 is broken currently
+  install_downstream_tplg "blobs/adl/sof-adl-rt1019-rt5682.tplg" "/lib/firmware/intel/sof-tplg/sof-adl-rt1019-rt5682.tplg"
+}
+
+mtl_sof_config() {
+  echo_status "Enabling SOF driver"
+  cp conf/sof/snd-sof.conf /etc/modprobe.d
+  # upstream mtl tplgs are broken currently
+  install_downstream_tplg "blobs/mtl/sof-mtl-rt5650.tplg" "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt5650.tplg"
+  install_downstream_tplg "blobs/mtl/sof-mtl-rt1019-rt5682.tplg" "/lib/firmware/intel/sof-ace-tplg/sof-mtl-rt1019-rt5682.tplg"
+}
+
+st_warning() {
+  echo_warning "WARNING: Audio on AMD StoneyRidge Chromebooks requires a patched kernel for Linux 6.18 or older"
+  echo_warning "Linux 6.19 and newer have all of the patches for stoney Chromebooks. If your distro packages Linux 6.19, please use that kernel."
+  echo_warning "You can get a prebuilt patched kernel for Debian/Ubuntu/Fedora from https://chrultrabook.sakamoto.pl/stoneyridge-kernel/"
+}
+
+mdn_config() {
+  echo_status "Install MDN SOF firmware"
+  mkdir -p /lib/firmware/amd/sof/community
+  mkdir -p /lib/firmware/amd/sof-tplg
+  cp blobs/mdn/fw/* /lib/firmware/amd/sof/community
+  cp blobs/mdn/tplg/* /lib/firmware/amd/sof-tplg
+}
+
+install_ucm() {
+  print_status "Installing UCM configuration"
+  rm -r /tmp/alsa-ucm-conf-cros
+  git clone https://github.com/WeirdTreeThing/alsa-ucm-conf-cros \
+  --depth 1 \
+  $([ -n "$OVERRIDE_BRANCH" ] && echo "-b $OVERRIDE_BRANCH") \
+  /tmp/alsa-ucm-conf-cros
+
+  cp -r /tmp/alsa-ucm-conf-cros/ucm2/* /usr/share/alsa/ucm2/
+  cp -r /tmp/alsa-ucm-conf-cros/overrides/* /usr/share/alsa/ucm2/conf.d/
+}
+
+install_fixes() {
+  # Some distros (Solus) don't have /etc/modprobe.d/ for some reason
+  mkdir -p /etc/modprobe.d
+
+  # Platform specific configuration
+  platform_config
+
+  # Install downstream ucm
+  install_ucm
+
+  # Check kernel for missing modules
+  check_kernel_config
+
+  # Install wireplumber config
+  # Fixes audio overruns on some platforms
+  if command -v wireplumber &>/dev/null; then
+    echo_status "Installing wireplumber config"
+    mkdir -p /etc/wireplumber/wireplumber.conf.d
+    cp conf/common/51-increase-headroom.conf /etc/wireplumber/wireplumber.conf.d/
+  fi
+
+  # Sometimes the alsa save/restore service doesn't init the sound card for some reason, so do it here instead
+  # This won't work for soundcards which don't currently exist, such as ones that need firmware installed
+  # by this script, but those aren't known to have this issue
+  echo_status "Initializing sound card"
+  alsactl init
+
+  echo_status("Audio setup finished! Reboot to complete setup.")
+  check_os_release && echo_info "If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio"
+  echo_info "If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething"
+}
+
+### MISC FUNCTIONS ###
+
+check_nix() {
+  if grep nixos /etc/os-release>/dev/null; then
+    echo_error "NixOS is not supported by this script."
+    exit
+  fi
+}
+
+check_arch() {
+  if [ ! "$(uname -m)" = "x86_64" ]; then
+    echo_error "ARM Chromebooks are not supported by this script."
+    echo_error "See your distro's documentation for audio support status."
+    exit
+  fi
+}
+
+symlink_tplg() {
+  path=$1
+  tplg1=$2
+  tplg2=$3
+
+  if [ -f "${path}/${tplg1}.tplg" ]; then
+    ln -sf ${path}/${tplg1}.tplg ${path}/${tplg2}.tplg
+  elif [ -f "${path}/${tplg1}.tplg.xz" ]; then
+    ln -sf ${path}/${tplg1}.tplg.xz ${path}/${tplg2}.tplg.xz
+  elif [ -f "${path}/${tplg1}.tplg.zst" ]; then
+    ln -sf ${path}/${tplg1}.tplg.zst ${path}/${tplg2}.tplg.zst
+  fi
+}
+
+install_downstream_tplg() {
+  tplg=$1
+  dest=$2
+
+  if [ -f "${dest}" ]; then
+    cp ${tplg} ${dest}
+  elif [ -f "${dest}.xz" ]; then
+    xz -c ${tplg} > ${dest}.xz
+  elif [ -f "${dest}.zst" ]; then
+    zstd ${tplg} -o ${dest}.zst
+  fi
+}
+
+check_kernel_config () {
+  active_kernel="$(uname -r)"
+  echo_status "Checking kernel config for ${active_kernel}"
+
+  config_file=""
+  if [ -f "/boot/config-${active_kernel}" ]; then
+    config_file="/boot/config-${active_kernel}"
+  elif [ -f "/proc/config.gz" ]; then
+    zcat /proc/config.gz > /tmp/config-${active_kernel}
+    config_file="/tmp/config-${active_kernel}"
+  elif [ -f "/boot/config" ]; then
+    config_file="/boot/config"
+  else
+    # throw hands up in the air crying
+    echo_error "Unable to read kernel config"
+    exit
+  fi
+
+  declare -ag module_configs
+
+  case $PLATFORM in # may not want to check for machine drivers here but whatever it works good enough for now
+    "bdw")
+      module_configs+=("SND_SOC_INTEL_BDW_RT5650_MACH" "SND_SOC_INTEL_BDW_RT5677_MACH" "SND_SOC_SOF_BROADWELL" "SND_SOC_INTEL_CATPT")
+      ;;
+    "byt")
+      module_configs+=("SND_SOC_INTEL_BYTCR_RT5640_MACH" "SND_SOC_SOF_BAYTRAIL" "SND_SST_ATOM_HIFI2_PLATFORM_ACPI")
+      ;;
+    "bsw")
+      module_configs+=("SND_SOC_INTEL_CHT_BSW_RT5645_MACH" "SND_SOC_INTEL_CHT_BSW_MAX98090_TI_MACH" "SND_SOC_SOF_BAYTRAIL" "SND_SST_ATOM_HIFI2_PLATFORM_ACPI")
+      ;;
+    "skl" | "kbl" | "apl")
+      module_configs+=("SND_SOC_INTEL_AVS" "SND_SOC_INTEL_AVS_MACH_DA7219" "SND_SOC_INTEL_AVS_MACH_DMIC" "SND_SOC_INTEL_AVS_MACH_HDAUDIO" "SND_SOC_INTEL_AVS_MACH_MAX98927" "SND_SOC_INTEL_AVS_MACH_MAX98357A" "SND_SOC_INTEL_AVS_MACH_MAX98373" "SND_SOC_INTEL_AVS_MACH_NAU8825" "SND_SOC_INTEL_AVS_MACH_RT5514" "SND_SOC_INTEL_AVS_MACH_RT5663" "SND_SOC_INTEL_AVS_MACH_SSM4567")
+      ;;
+    "glk")
+      module_configs+=("SND_SOC_SOF_GEMINILAKE" "SND_SOC_INTEL_SOF_CS42L42_MACH" "SND_SOC_INTEL_SOF_RT5682_MACH" "SND_SOC_INTEL_SOF_DA7219_MACH")
+      ;;
+    "cml")
+      module_configs+=("SND_SOC_SOF_COMETLAKE" "SND_SOC_INTEL_SOF_RT5682_MACH" "SND_SOC_INTEL_SOF_DA7219_MACH")
+      ;;
+    "tgl")
+      module_configs+=("SND_SOC_SOF_TIGERLAKE" "SND_SOC_INTEL_SOF_RT5682_MACH")
+      ;;
+    "jsl")
+      module_configs+=("SND_SOC_SOF_ICELAKE" "SND_SOC_INTEL_SOF_RT5682_MACH" "SND_SOC_INTEL_SOF_DA7219_MACH" "SND_SOC_INTEL_SOF_CS42L42_MACH")
+      ;;
+    "adl")
+      module_configs+=("SND_SOC_SOF_ALDERLAKE" "SND_SOC_INTEL_SOF_CS42L42_MACH" "SND_SOC_INTEL_SOF_DA7219_MACH" "SND_SOC_INTEL_SOF_RT5682_MACH" "SND_SOC_INTEL_SOF_NAU8825_MACH" "SND_SOC_INTEL_SOF_SSP_AMP_MACH")
+      ;;
+    "mtl")
+      module_configs+=("SND_SOC_SOF_METEORLAKE" "SND_SOC_INTEL_SOF_RT5682_MACH")
+      ;;
+    "st")
+      module_configs+=("SND_SOC_AMD_ACP" "SND_SOC_AMD_CZ_DA7219MX98357_MACH")
+      ;;
+    "pco")
+      module_configs+=("SND_SOC_AMD_ACP3x" "SND_SOC_AMD_RV_RT5682_MACH")
+      ;;
+    "czn")
+      module_configs+=("SND_SOC_SOF_AMD_RENOIR" "SND_AMD_ASOC_RENOIR")
+      ;;
+    "mdn")
+      module_configs+=("SND_SOC_SOF_AMD_REMBRANDT" "SND_AMD_ASOC_REMBRANDT")
+      ;;
+  esac
+
+  for codec in ${CODECS[@]}; do
+    case $codec in
+      "max98357a" | "max98360a")
+        module_configs+=("SND_SOC_MAX98357A")
+        ;;
+      "max98373")
+        module_configs+=("SND_SOC_MAX98373")
+        ;;
+      "max98927")
+        module_configs+=("SND_SOC_MAX98927")
+        ;;
+      "max98390")
+        module_configs+=("SND_SOC_MAX98390")
+        ;;
+      "rt1011")
+        module_configs+=("SND_SOC_RT1011")
+        ;;
+      "rt1015")
+        module_configs+=("SND_SOC_RT1015")
+        ;;
+      "rt1015p" | "rt1019p")
+        module_configs+=("SND_SOC_RT1015P")
+        ;;
+      "rt1019")
+        module_configs+=("SND_SOC_RT1019")
+        ;;
+      "rt5682")
+        module_configs+=("SND_SOC_RT5682")
+        ;;
+      "rt5682s")
+        module_configs+=("SND_SOC_RT5682S")
+        ;;
+      "rt5663")
+        module_configs+=("SND_SOC_RT5663")
+        ;;
+      "cs42l42")
+        module_configs+=("SND_SOC_CS42L42")
+        ;;
+      "da7219")
+        module_configs+=("SND_SOC_DA7219")
+        ;;
+      "nau8825")
+        module_configs+=("SND_SOC_NAU8825")
+        ;;
+      "max98090")
+        module_configs+=("SND_SOC_MAX98090")
+        ;;
+      "rt5650")
+        module_configs+=("SND_SOC_RT5645")
+        ;;
+      "rt5677")
+        module_configs+=("SND_SOC_RT5677")
+        ;;
+      "rt5514")
+        module_configs+=("SND_SOC_RT5514")
+        ;;
+      "CrosEC audio codec")
+        module_configs+=("SND_SOC_CROS_EC_CODEC")
+        ;;
+    esac
+  done
+
+  failed=false
+  for module in ${module_configs[@]}; do
+    if ! grep $module $config_file &>/dev/null; then
+      echo_error "Kernel is missing module ${module}. Audio may not work."
+      failed=true
+    fi
+  done
+
+  if ! failed; then
+    echo_info "Kernel config check passed"
+  fi
+}
+
+declare -gA ACPI_TO_CODEC_TABLE
+
+ACPI_TO_CODEC_TABLE=(
+  # Speaker amps
+  ["MX98357A"]="max98357a"
+  ["MX98360A"]="max98360a"
+  ["MX98373"]="max98373"
+  ["MX98927"]="max98927"
+  ["MX98390"]="max98390"
+  ["10EC1011"]="rt1011"
+  ["10EC1015"]="rt1015"
+  ["RTL1015"]="rt1015p"
+  ["10EC1019"]="rt1019"
+  ["RTL1019"]="rt1019p"
+  ["103C8C08"]="cs35l53"
+  # Headphone codecs
+  ["10E5682"]="rt5682"
+  ["RTL5682"]="rt5682s"
+  ["10EC5663"]="rt5663"
+  ["10134242"]="cs42l42"
+  ["DLGS7219"]="da7219"
+  ["10158825"]="nau8825"
+  # Speaker/Headphone combo codecs
+  ["193C9890"]="max98090"
+  ["10EC5650"]="rt5650"
+  ["RT5677CE"]="rt5677"
+  # Mic codecs
+  ["10EC5514"]="rt5514"
+  ["GOOG0013"]="CrosEC audio codec"
+)
+
+get_codecs() {
+  print_status "Detecting audio codecs"
+
+  for codec in "${!ACPI_TO_CODEC_TABLE[@]}"; do
+    if [ -d "/sys/bus/acpi/devices/${codec}:00" ]; then
+      echo_info "Found ${ACPI_TO_CODEC_TABLE["$codec"]}"
+      CODECS+=("${ACPI_TO_CODEC_TABLE["$codec"]}")
+    fi
+  done
+}
+
+check_os_release() {
+  if grep noble /etc/os-release>/dev/null || \
+  grep jammy /etc/os-release>/dev/null || \
+  grep plucky /etc/os-release>/dev/null
+  then
+    echo_warning "Warning: Your distro is not officially supported. Issues are expected."
+    echo_warning "Please try a supported distro first before opening an issue. See the README for a list of supported distros."
+    return false
+  fi
+  return true
+}
+
+### MENU STUFF ###
+
+# Colors
+RESET=$(echo "\033[m")
+BLUE=$(echo "\033[36m")
+YELLOW=$(echo "\033[33m")
+RED=$(echo "\033[31m")
+GREEN=$(echo "\033[1;32m")
+
+echo_status() {
+  echo -e "${BLUE}$@${RESET}"
+}
+
+echo_warning() {
+  echo -e "${YELLOW}$@${RESET}"
+}
+
+echo_error() {
+  echo -e "${RED}$@${RESET}"
+}
+
+echo_info() {
+  echo -e "${GREEN}$@${RESET}"
+}
+
+usage() {
+  echo "Usage: setup-audio [-h] [-f] [-p platform] [-b branch] "
+  echo "       -h Show this help text"
+  echo "       -f Force enable max98357a with the avs driver (Potentially risky!)"
+  echo "       -p <platform> Override the platform, for devs/testers"
+  echo "       -b <branch> Override the ucm branch, for devs/testers"
+  exit
+}
+
+menu() {
+  clear
+  echo -e "${BLUE}WeirdTreeThing Chromebook Audio Script${RESET}"
+  echo -e " ${YELLOW}1) ${GREEN}Install audio fixes${RESET}"
+  echo -e " ${YELLOW}2) ${GREEN}Remove audio fixes${RESET}"
+  echo -e " ${YELLOW}3) ${GREEN}Clear audio state${RESET}"
+  echo -e " ${YELLOW}4) ${GREEN}Collect debugging logs${RESET}"
+  echo -e " ${YELLOW}5) ${GREEN}Exit${RESET}"
+
+  echo -en "${BLUE} Selection: ${RESET}"
+  read -re opt
+  case $opt in
+
+  1)
+    install_fixes
+    ;;
+  2)
+    echo_error "Currently not implemented"
+    ;;
+  3)
+    echo_error "Currently not implemented"
+    ;;
+  4)
+    echo_error "Currently not implemented"
+    ;;
+  5)
+    exit
+    ;;
+  *)
+    menu
+    ;;
+
+  esac
+}
+
+check_nix
+check_arch
+
+# Parse options
+while getopts ":fhp:b:" flag; do
+  case $flag in
+    f)
+      FORCE_AVS_INSTALL=true
+      ;;
+    h)
+      usage
+      ;;
+    p)
+      OVERRIDE_PLATFORM=$OPTARG
+      ;;
+    b)
+      OVERRIDE_BRANCH=$OPTARG
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+# Check if we are running as root, and restart the script if not
+if [ ! "$(id -u)" = "0"  ]; then
+  PRIVESC="sudo"
+  command -v doas &>/dev/null && PRIVESC="doas"
+  exec $PRIVESC $0 $@
+fi
+
+menu
