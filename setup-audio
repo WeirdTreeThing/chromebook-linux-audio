@@ -321,7 +321,7 @@ install_fixes() {
   echo_status "Initializing sound card"
   alsactl init
 
-  echo_status("Audio setup finished! Reboot to complete setup.")
+  echo_status "Audio setup finished! Reboot to complete setup."
   check_os_release && echo_info "If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio"
   echo_info "If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething"
 }
