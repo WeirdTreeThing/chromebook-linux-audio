@@ -283,8 +283,8 @@ mdn_config() {
 }
 
 install_ucm() {
-  print_status "Installing UCM configuration"
-  rm -r /tmp/alsa-ucm-conf-cros
+  echo_status "Installing UCM configuration"
+  rm -r /tmp/alsa-ucm-conf-cros &>/dev/null
   git clone https://github.com/WeirdTreeThing/alsa-ucm-conf-cros \
   --depth 1 \
   $([ -n "$OVERRIDE_BRANCH" ] && echo "-b $OVERRIDE_BRANCH") \
@@ -319,7 +319,7 @@ install_fixes() {
   # This won't work for soundcards which don't currently exist, such as ones that need firmware installed
   # by this script, but those aren't known to have this issue
   echo_status "Initializing sound card"
-  alsactl init
+  alsactl init || echo_warning "Warning: alsactl not found, card not initialized. You may have audio issues."
 
   echo_status "Audio setup finished! Reboot to complete setup."
   check_os_release && echo_info "If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio"
@@ -505,7 +505,7 @@ check_kernel_config () {
     fi
   done
 
-  if ! failed; then
+  if ! $failed; then
     echo_info "Kernel config check passed"
   fi
 }
@@ -542,7 +542,7 @@ ACPI_TO_CODEC_TABLE=(
 )
 
 get_codecs() {
-  print_status "Detecting audio codecs"
+  echo_status "Detecting audio codecs"
 
   for codec in "${!ACPI_TO_CODEC_TABLE[@]}"; do
     if [ -d "/sys/bus/acpi/devices/${codec}:00" ]; then
