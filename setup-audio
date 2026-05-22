@@ -559,9 +559,9 @@ check_os_release() {
   then
     echo_warning "Warning: Your distro is not officially supported. Issues are expected."
     echo_warning "Please try a supported distro first before opening an issue. See the README for a list of supported distros."
-    return false
+    return 1
   fi
-  return true
+  return 0
 }
 
 ### MENU STUFF ###
