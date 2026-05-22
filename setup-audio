@@ -659,8 +659,17 @@ done
 
 # Check if we are running as root, and restart the script if not
 if [ ! "$(id -u)" = "0"  ]; then
-  PRIVESC="sudo"
-  command -v doas &>/dev/null && PRIVESC="doas"
+  PRIVESC=""
+  if command -v sudo >/dev/null 2>&1; then
+    PRIVESC="sudo"
+  elif command -v doas >/dev/null 2>&1; then
+    PRIVESC="doas"
+  else
+    echo "ERROR: No privilege escalation tool found!"
+    echo "Run this script as the root user instead"
+    exit 1
+  fi
+
   exec $PRIVESC $0 $@
 fi
 
