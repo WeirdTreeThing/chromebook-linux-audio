@@ -659,18 +659,21 @@ done
 
 # Check if we are running as root, and restart the script if not
 if [ ! "$(id -u)" = "0"  ]; then
-  PRIVESC=""
   if command -v sudo >/dev/null 2>&1; then
-    PRIVESC="sudo"
+    echo "Using sudo for escalation"
+    exec sudo "$0" "$@"
   elif command -v doas >/dev/null 2>&1; then
-    PRIVESC="doas"
+    echo "Using doas for escalation"
+    exec doas "$0" "$@"
+  if command -v su >/dev/null 2>&1; then
+    echo "Falling back to su for escalation"
+    echo "Please enter the password for the ROOT account of the system"
+    exec su root -c '"$0" "$@"' -- "$0" "$@"
   else
-    echo "ERROR: No privilege escalation tool found!"
-    echo "Run this script as the root user instead"
+    echo "ERROR: No supported privilege escalation tool found."
+    echo "Run this script as root instead."
     exit 1
   fi
-
-  exec $PRIVESC $0 $@
 fi
 
 menu
