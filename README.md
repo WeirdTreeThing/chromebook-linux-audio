@@ -26,5 +26,8 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/devices.html) for
 # Other Distros
 Other distros will likely work but will require you to manually install packages. The script will print a list of any packages you may need to install. It is required to have a relatively modern distro (no old LTS releases) as those will be missing important fixes.
 
+# Troubleshooting
+Audio will not work if the Intel Management Engine is disabled in the UEFI firmware setup (BIOS).
+
 # Donations
 If you would like to support the work I do, consider donating [here](https://paypal.me/weirdtreething).
