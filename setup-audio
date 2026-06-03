@@ -312,7 +312,7 @@ install_fixes() {
   if command -v wireplumber &>/dev/null; then
     echo_status "Installing wireplumber config"
     mkdir -p /etc/wireplumber/wireplumber.conf.d
-    cp conf/common/51-increase-headroom.conf /etc/wireplumber/wireplumber.conf.d/
+    cp conf/common/51-*.conf /etc/wireplumber/wireplumber.conf.d/
   fi
 
   # Sometimes the alsa save/restore service doesn't init the sound card for some reason, so do it here instead
