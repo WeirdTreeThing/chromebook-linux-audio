@@ -665,7 +665,7 @@ if [ ! "$(id -u)" = "0"  ]; then
   elif command -v doas >/dev/null 2>&1; then
     echo "Using doas for escalation"
     exec doas "$0" "$@"
-  if command -v su >/dev/null 2>&1; then
+  elif command -v su >/dev/null 2>&1; then
     echo "Falling back to su for escalation"
     echo "Please enter the password for the ROOT account of the system"
     exec su root -c '"$0" "$@"' -- "$0" "$@"
