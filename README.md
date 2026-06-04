@@ -19,9 +19,9 @@ See the [Chrultrabook docs](https://docs.chrultrabook.com/docs/devices.html) for
 1. Alpine Linux edge
 2. Arch Linux
 3. Debian Trixie
-4. Fedora 43
+4. Fedora 43/44
 5. OpenSUSE Tumbleweed
-6. Ubuntu 25.10
+6. Ubuntu 26.04
 7. Void Linux
 
 # Other Distros
