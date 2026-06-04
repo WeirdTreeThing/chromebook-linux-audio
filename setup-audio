@@ -288,7 +288,7 @@ install_ucm() {
   git clone https://github.com/WeirdTreeThing/alsa-ucm-conf-cros \
   --depth 1 \
   $([ -n "$OVERRIDE_BRANCH" ] && echo "-b $OVERRIDE_BRANCH") \
-  /tmp/alsa-ucm-conf-cros
+  /tmp/alsa-ucm-conf-cros &>/dev/null
 
   cp -r /tmp/alsa-ucm-conf-cros/ucm2/* /usr/share/alsa/ucm2/
   cp -r /tmp/alsa-ucm-conf-cros/overrides/* /usr/share/alsa/ucm2/conf.d/
@@ -319,7 +319,11 @@ install_fixes() {
   # This won't work for soundcards which don't currently exist, such as ones that need firmware installed
   # by this script, but those aren't known to have this issue
   echo_status "Initializing sound card"
-  alsactl init || echo_warning "Warning: alsactl not found, card not initialized. You may have audio issues."
+  if command -v alsactl &>/dev/null; then
+    alsactl init &>/dev/null
+  else
+    echo_warning "Warning: alsactl not found, card not initialized. You may have audio issues."
+  fi
 
   echo_status "Audio setup finished! Reboot to complete setup."
   check_os_release && echo_info "If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio"
