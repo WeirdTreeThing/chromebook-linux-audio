@@ -92,6 +92,10 @@ get_platform() {
       echo_info "Detected Intel Meteorlake"
       PLATFORM="mtl"
       ;;
+    "google_trulo")
+      echo_info "Detected Intel Twinlake"
+      PLATFORM="adl"
+      ;;
     "google_kahlee")
       echo_info "Detected AMD StoneyRidge"
       PLATFORM="st"
