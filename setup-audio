@@ -262,6 +262,9 @@ adl_sof_config() {
   symlink_tplg "/lib/firmware/intel/sof-tplg" "sof-adl-max98360a-rt5682" "sof-adl-max98360a-cs42l42"
   # upstream sof-adl-rt1019-rt5682 is broken currently
   install_downstream_tplg "blobs/adl/sof-adl-rt1019-rt5682.tplg" "/lib/firmware/intel/sof-tplg/sof-adl-rt1019-rt5682.tplg"
+  # ADL/TWL devices using HDA cannot detect the internal mic automatically. Follow ChromeOS and use a modprobe config for force the dmic count. While this does also apply to devices using I2S codecs, every modern Intel device uses a 4ch dmic so it won't break anything.
+  echo_status "Installing modprobe config"
+  cp conf/sof/adl-sof.conf /etc/modprobe.d
 }
 
 mtl_sof_config() {
