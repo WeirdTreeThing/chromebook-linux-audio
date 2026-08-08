@@ -155,6 +155,8 @@ def platform_config(platform, args):
             check_sof_fw()
         case "st":
             st_warning()
+        case "czn":
+            czn_config()
         case "mdn":
             mdn_config()
 
@@ -257,6 +259,17 @@ def get_platform():
         if id == "0x4e22" or id == "0x4e12" or id == "0x4e26":
             print_status("Detected Intel Jasperlake")
             return "jsl"
+
+def czn_config():
+    print_header("Installing CZN SOF firmware")
+    mkdir("/lib/firmware/amd/sof/community", create_parents=True)
+    mkdir("/lib/firmware/amd/sof-tplg", create_parents=True)
+    cpdir("blobs/czn/fw", "/lib/firmware/amd/sof/community")
+    cpdir("blobs/czn/tplg", "/lib/firmware/amd/sof-tplg")
+    # ChromeOS ships one tplg and points both amp variants' topology names at
+    # it; the kernel asks for whichever name matches the amp it detected.
+    symlink_tplg("/lib/firmware/amd/sof-tplg", "sof-acp", "sof-rn-rt5682-max98360")
+    symlink_tplg("/lib/firmware/amd/sof-tplg", "sof-acp", "sof-rn-rt5682-rt1019")
 
 def mdn_config():
     print_header("Installing MDN SOF firmware")
@@ -439,7 +452,7 @@ def check_kernel_config(platform):
         case "pco":
             module_configs += ["SND_SOC_AMD_ACP3x", "SND_SOC_AMD_RV_RT5682_MACH"]
         case "czn":
-            module_configs += [""] # TODO: fill this out
+            module_configs += ["SND_SOC_SOF_AMD_RENOIR", "SND_AMD_ASOC_RENOIR"]
         case "mdn":
             module_configs += ["SND_SOC_SOF_AMD_REMBRANDT", "SND_AMD_ASOC_REMBRANDT"]
 
