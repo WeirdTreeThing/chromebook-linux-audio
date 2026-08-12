@@ -248,6 +248,11 @@ generic_sof_config() {
     echo_error "SOF firmware is missing, audio will not work."
     echo_error "Please install the SOF firmware package (usually sof-firmware) with your package manager"
   fi
+
+  # ME is responsible for booting the DSP, so audio will not work if ME is disabled
+  if dmesg | grep "module: ROM, state: CSE_IPC_RESET_PHASE_1, waiting for: CSE_CSR" &>/dev/null; then
+    echo_error "Intel ME is disabled, audio will NOT work. Please enable ME in firmware setup."
+  fi
 }
 
 adl_sof_config() {
