@@ -344,6 +344,13 @@ install_fixes() {
 
 ### MISC FUNCTIONS ###
 
+check_omarchy() {
+  if grep -i omarchy /etc/os-release>/dev/null; then
+    echo_error "Use a real distro"
+    exit
+  fi
+}
+
 check_nix() {
   if grep nixos /etc/os-release>/dev/null; then
     echo_error "NixOS is not supported by this script."
@@ -649,6 +656,7 @@ menu() {
   esac
 }
 
+check_omarchy
 check_nix
 check_arch
 
