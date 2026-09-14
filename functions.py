@@ -1,4 +1,5 @@
 import contextlib
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -543,6 +544,82 @@ def install_ucm(branch):
 
     cpdir("/tmp/alsa-ucm-conf-cros/ucm2", "/usr/share/alsa/ucm2/")
     cpdir("/tmp/alsa-ucm-conf-cros/overrides", "/usr/share/alsa/ucm2/conf.d")
+
+REDRIX_PRODUCT_NAME = Path("/sys/class/dmi/id/product_name")
+REDRIX_WP_CONFIG_DIR = Path("/etc/wireplumber/wireplumber.conf.d")
+REDRIX_PRIORITY_CONFIG = "60-chromebook-redrix-mic-priority.conf"
+REDRIX_GAIN_CONFIG = "61-chromebook-redrix-mic-gain.conf"
+
+
+def audio_stack_version(program):
+    """Read the linked library version without requiring an audio session."""
+    try:
+        result = subprocess.run([program, "--version"], check=True,
+                                capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+    output = result.stdout + "\n" + result.stderr
+    for label in ("Linked with", "Compiled with"):
+        prefix = f"{label} lib{program} "
+        # An unrecognised linked version must not fall back to a newer build version.
+        if prefix in output:
+            match = re.search(rf"^{re.escape(prefix)}(\d+)\.(\d+)\.(\d+)(?:[-+~\s]|$)",
+                              output, re.MULTILINE)
+            return tuple(map(int, match.groups())) if match else None
+    return None
+
+
+def install_redrix_audio_config():
+    """Install only the Redrix microphone policy supported by this audio stack."""
+    try:
+        board = REDRIX_PRODUCT_NAME.read_text().strip().lower()
+    except OSError:
+        print_warning("Unable to read the board name; skipping Redrix microphone configuration.")
+        return
+    if board != "redrix":
+        # A system disk may have moved to another Chromebook since installation.
+        for name in (REDRIX_PRIORITY_CONFIG, REDRIX_GAIN_CONFIG):
+            rmfile(str(REDRIX_WP_CONFIG_DIR / name))
+        return
+
+    print_header("Configuring Redrix internal microphone")
+    wp_version = audio_stack_version("wireplumber")
+    pw_version = audio_stack_version("pipewire")
+    priority_supported = wp_version is not None and wp_version >= (0, 5, 0)
+    gain_supported = (wp_version is not None and wp_version >= (0, 5, 13)
+                      and pw_version is not None and pw_version >= (1, 4, 0))
+
+    config_dir = Path(__file__).resolve().parent / "conf" / "redrix"
+    configs = {
+        REDRIX_PRIORITY_CONFIG: priority_supported,
+        REDRIX_GAIN_CONFIG: gain_supported,
+    }
+    for name, supported in configs.items():
+        destination = REDRIX_WP_CONFIG_DIR / name
+        if supported:
+            mkdir(str(REDRIX_WP_CONFIG_DIR), create_parents=True)
+            cpfile(str(config_dir / name), str(destination))
+        else:
+            # Remove only this installer's files after a downgrade or failed detection.
+            rmfile(str(destination))
+
+    if priority_supported:
+        print_status("Installed Redrix microphone priority configuration")
+    else:
+        print_warning("Redrix microphone priority was not installed: WirePlumber >= 0.5.0 is required.")
+    if gain_supported:
+        print_status("Installed Redrix +20 dB microphone gain configuration")
+        print_warning("Before rebooting, disable any existing manual microphone preamp rules "
+                      "to avoid applying the gain twice.")
+    else:
+        wp_text = ".".join(map(str, wp_version)) if wp_version is not None else "unknown/unavailable"
+        pw_text = ".".join(map(str, pw_version)) if pw_version is not None else "unknown/unavailable"
+        print_warning("Redrix microphone gain was not installed: requires WirePlumber >= 0.5.13 "
+                      f"and PipeWire >= 1.4.0 (detected {wp_text} and {pw_text}).")
+        print_warning("Upgrade the audio stack and rerun setup-audio to apply the microphone gain.")
+    print_status("After reboot, select Internal Microphone 1 in sound settings, start input "
+                 "volume at 100%, and test a voice recording.")
 
 def check_os_release():
     release = ""
