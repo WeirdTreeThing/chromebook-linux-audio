@@ -16,7 +16,7 @@ def process_args():
                         help="Disable audio debugging.")
     parser.add_argument("--force-avs-install", action="store_true", dest="force_avs_install", default=False,
                         help="DANGEROUS: Force enable AVS install. MIGHT CAUSE PERMANENT DAMAGE TO SPEAKERS!")
-    parser.add_argument("--branch", dest="branch_name", type=str, nargs=1, default=["standalone"],
+    parser.add_argument("--branch", dest="branch_name", type=str, nargs=1, default=[None],
                         help="Use a different branch when cloning ucm. FOR DEVS AND TESTERS ONLY!")
     return parser.parse_args()
 

@@ -1,4 +1,6 @@
 import contextlib
+import ctypes
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -298,6 +300,15 @@ def avs_config(args):
     print_header("Enabling AVS driver")
     cpfile("conf/avs/snd-avs.conf", "/etc/modprobe.d/snd-avs.conf")
 
+    # Older linux-firmware packages (e.g. Ubuntu 24.04) don't include these AVS topologies,
+    # which leaves only the "avs_probe_mb" card with no usable audio devices.
+    # If the distro doesn't ship them (compressed or not), install the unmodified copies from upstream linux-firmware.
+    mkdir("/lib/firmware/intel/avs", create_parents=True)
+    for tplg in ("nau8825-tplg.bin", "ssm4567-tplg.bin", "dmic-tplg.bin"):
+        dest = f"/lib/firmware/intel/avs/{tplg}"
+        if not any(path_exists(dest + ext) for ext in ("", ".zst", ".xz")):
+            cpfile(f"blobs/avs/{tplg}", dest)
+
     # Delete topology for max98357a to prevent it from working until there is a volume limiter.
     if not override_avs:
         rmfile("/lib/firmware/intel/avs/max98357a-tplg.bin")
@@ -534,6 +545,13 @@ def get_codecs():
 
 def install_ucm(branch):
     print_header("Installing UCM configuration")
+
+    if branch is None:
+        # The standalone branch uses UCM "Syntax 7", which alsa-lib only understands since 1.2.12.
+        # Older alsa-lib (e.g. Ubuntu 24.04) rejects those configs entirely, so use old-syntax there.
+        version = get_alsa_lib_version()
+        branch = "old-syntax" if version and version < (1, 2, 12) else "standalone"
+
     try:
         bash("rm -rf /tmp/alsa-ucm-conf-cros")
         bash(f"git clone --depth 1 https://github.com/WeirdTreeThing/alsa-ucm-conf-cros -b {branch} /tmp/alsa-ucm-conf-cros")
@@ -541,8 +559,25 @@ def install_ucm(branch):
         print_error("Error: Failed to clone UCM repo")
         exit(1)
 
+    # alsa-lib falls back to conf.d/<driver>/<driver>.conf when no file matches the card's long name.
+    # Some old-syntax configs (e.g. avs_ssm4567-adi.conf) don't match either name, so alsa-lib never
+    # finds them. Also install them under the fallback name.
+    for device_dir in Path("/tmp/alsa-ucm-conf-cros/ucm2/conf.d").iterdir():
+        fallback = device_dir / f"{device_dir.name}.conf"
+        confs = [f for f in device_dir.glob("*.conf") if f.name != "HiFi.conf"]
+        if not fallback.exists() and len(confs) == 1:
+            cpfile(str(confs[0]), str(fallback))
+
     cpdir("/tmp/alsa-ucm-conf-cros/ucm2", "/usr/share/alsa/ucm2/")
     cpdir("/tmp/alsa-ucm-conf-cros/overrides", "/usr/share/alsa/ucm2/conf.d")
+
+def get_alsa_lib_version():
+    try:
+        lib = ctypes.CDLL("libasound.so.2")
+    except OSError:
+        return None
+    lib.snd_asoundlib_version.restype = ctypes.c_char_p
+    return tuple(int(n) for n in re.findall(r"\d+", lib.snd_asoundlib_version().decode())[:3])
 
 def check_os_release():
     release = ""
