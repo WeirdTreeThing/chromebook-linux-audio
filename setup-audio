@@ -80,7 +80,7 @@ get_platform() {
       echo_info "Detected Intel Tigerlake"
       PLATFORM="tgl"
       ;;
-    "google_brya" | "google_brask")
+    "google_brya" | "google_brask" | "google_brox")
       echo_info "Detected Intel Alderlake"
       PLATFORM="adl"
       ;;
