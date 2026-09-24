@@ -81,11 +81,11 @@ get_platform() {
       PLATFORM="tgl"
       ;;
     "google_brya" | "google_brask" | "google_brox")
-      echo_info "Detected Intel Alderlake"
+      echo_info "Detected Intel Alderlake/Raptorlake"
       PLATFORM="adl"
       ;;
     "google_nissa")
-      echo_info "Detected Intel Alderlake-N"
+      echo_info "Detected Intel Alderlake-N/Twinlake"
       PLATFORM="adl"
       ;;
     "google_rex")
