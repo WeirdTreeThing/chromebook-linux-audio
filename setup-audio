@@ -251,7 +251,7 @@ generic_sof_config() {
 
   # ME is responsible for booting the DSP, so audio will not work if ME is disabled
   if dmesg | grep "module: ROM, state: CSE_IPC_RESET_PHASE_1, waiting for: CSE_CSR" &>/dev/null; then
-    echo_error "Intel ME is disabled, audio will NOT work. Please enable ME in firmware setup."
+    echo_error "Intel ME is disabled, audio will NOT work. Please enable ME/CSE in firmware setup."
   fi
 }
 
