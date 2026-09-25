@@ -189,13 +189,13 @@ sst_atom_config() {
     case $input in
     "sst")
       echo_info "Using SST"
-      rm /etc/modprobe.d/hifi2-sof.conf
+      rm /etc/modprobe.d/hifi2-sof.conf &>/dev/null
       cp conf/common/snd-sst.conf /etc/modprobe.d/
       break
       ;;
     "sof")
       echo_info "Using SOF"
-      rm /etc/modprobe.d/snd-sst.conf
+      rm /etc/modprobe.d/snd-sst.conf &>/dev/null
       cp conf/sof/hifi2-sof.conf /etc/modprobe.d/
       break
       ;;
