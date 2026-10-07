@@ -266,10 +266,24 @@ adl_sof_config() {
   # sof-adl-max98360a-cs42l42.tplg is symlinked to sof-adl-max98360a-rt5682.tplg in ChromeOS
   symlink_tplg "/lib/firmware/intel/sof-tplg" "sof-adl-max98360a-rt5682" "sof-adl-max98360a-cs42l42"
   # upstream sof-adl-rt1019-rt5682 is broken currently
-  install_downstream_tplg "blobs/adl/sof-adl-rt1019-rt5682.tplg" "/lib/firmware/intel/sof-tplg/sof-adl-rt1019-rt5682.tplg"
-  # ADL/TWL devices using HDA cannot detect the internal mic automatically. Follow ChromeOS and use a modprobe config for force the dmic count. While this does also apply to devices using I2S codecs, every modern Intel device uses a 4ch dmic so it won't break anything.
+  # Marasov is wired as a 2ch array on PDM1 (coreboot: mic-tplg=2ch-pdm1).
+  # The generic downstream topology enables both PDM0 and PDM1 and exposes
+  # a 4ch PCM, leaving the first pair as invalid/DC-only inputs on Marasov.
+  local pn
+  pn="$(cat /sys/class/dmi/id/product_name | tr '[:upper:]' '[:lower:]')"
+  if [ "$pn" = "marasov" ]; then
+    install_downstream_tplg "blobs/adl/sof-adl-rt1019-rt5682-marasov.tplg" "/lib/firmware/intel/sof-tplg/sof-adl-rt1019-rt5682.tplg"
+  else
+    install_downstream_tplg "blobs/adl/sof-adl-rt1019-rt5682.tplg" "/lib/firmware/intel/sof-tplg/sof-adl-rt1019-rt5682.tplg"
+  fi
+  # ADL/TWL devices using HDA cannot detect the internal mic automatically.
+  # Most supported devices use 4ch DMIC, but Marasov is explicitly 2ch on PDM1.
   echo_status "Installing modprobe config"
-  cp conf/sof/adl-sof.conf /etc/modprobe.d
+  if [ "$pn" = "marasov" ]; then
+    cp conf/sof/adl-sof-marasov.conf /etc/modprobe.d/adl-sof.conf
+  else
+    cp conf/sof/adl-sof.conf /etc/modprobe.d
+  fi
 }
 
 mtl_sof_config() {
@@ -304,6 +318,15 @@ install_ucm() {
 
   cp -r /tmp/alsa-ucm-conf-cros/ucm2/* /usr/share/alsa/ucm2/
   cp -r /tmp/alsa-ucm-conf-cros/overrides/* /usr/share/alsa/ucm2/conf.d/
+
+  # The Marasov topology exposes its physical PDM1 pair directly as a 2ch
+  # PCM, so the generic 4ch Mic1/Mic2 split UCM does not apply.
+  local pn
+  pn="$(cat /sys/class/dmi/id/product_name | tr '[:upper:]' '[:lower:]')"
+  if [ "$pn" = "marasov" ]; then
+    echo_status "Installing Marasov 2ch DMIC UCM override"
+    cp conf/sof/marasov-rt5682-HiFi.conf /usr/share/alsa/ucm2/conf.d/sof-rt5682/HiFi.conf
+  fi
 }
 
 install_fixes() {
