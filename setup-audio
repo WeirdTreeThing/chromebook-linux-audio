@@ -306,6 +306,47 @@ install_ucm() {
   cp -r /tmp/alsa-ucm-conf-cros/overrides/* /usr/share/alsa/ucm2/conf.d/
 }
 
+# Copy conf/<tree>/<card>/ over /usr/share/alsa/ucm2/conf.d/<card>/.
+install_ucm_tree() {
+  local src="$1"
+  local dir name
+
+  [ -d "$src" ] || return 0
+  for dir in "$src"/*/; do
+    [ -d "$dir" ] || continue
+    name="$(basename "$dir")"
+    mkdir -p "/usr/share/alsa/ucm2/conf.d/$name"
+    cp -r "$dir"* "/usr/share/alsa/ucm2/conf.d/$name/"
+  done
+}
+
+# conf/quirks/<product_name>/ holds UCM and WirePlumber files that are not
+# safe to apply to every board that shares a card profile. product_name is
+# lowercased, so Screebo matches conf/quirks/screebo/.
+install_board_quirks() {
+  local board dir
+
+  board="$(cat /sys/class/dmi/id/product_name 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+  [ -n "$board" ] || return 0
+  dir="conf/quirks/$board"
+  [ -d "$dir" ] || return 0
+
+  echo_status "Installing audio quirks for $board"
+  install_ucm_tree "$dir/ucm"
+
+  if command -v wireplumber &>/dev/null; then
+    mkdir -p /etc/wireplumber/wireplumber.conf.d
+    mkdir -p /etc/wireplumber/scripts /usr/share/wireplumber/scripts
+    if compgen -G "$dir"/51-*.conf >/dev/null; then
+      cp "$dir"/51-*.conf /etc/wireplumber/wireplumber.conf.d/
+    fi
+    if compgen -G "$dir"/*.lua >/dev/null; then
+      cp "$dir"/*.lua /etc/wireplumber/scripts/
+      cp "$dir"/*.lua /usr/share/wireplumber/scripts/
+    fi
+  fi
+}
+
 install_fixes() {
   # Some distros (Solus) don't have /etc/modprobe.d/ for some reason
   mkdir -p /etc/modprobe.d
@@ -327,6 +368,8 @@ install_fixes() {
     cp conf/common/51-*.conf /etc/wireplumber/wireplumber.conf.d/
   fi
 
+  install_board_quirks
+
   # Sometimes the alsa save/restore service doesn't init the sound card for some reason, so do it here instead
   # This won't work for soundcards which don't currently exist, such as ones that need firmware installed
   # by this script, but those aren't known to have this issue
@@ -340,6 +383,230 @@ install_fixes() {
   echo_status "Audio setup finished! Reboot to complete setup."
   check_os_release && echo_info "If you still have any issues post-reboot, report them to https://github.com/WeirdTreeThing/chromebook-linux-audio"
   echo_info "If this script has been helpful for you and you would like to support the work I do, consider donating to https://paypal.me/weirdtreething"
+}
+
+remove_shipped_file() {
+  local dest="$1"
+
+  if [ -e "$dest" ] || [ -L "$dest" ]; then
+    rm -f "$dest"
+    echo_info "Removed $dest"
+  fi
+}
+
+# Drop a firmware file only when it is still the blob this script copied.
+remove_matching_blob() {
+  local src="$1"
+  local dest="$2"
+
+  [ -f "$src" ] || return 0
+  [ -f "$dest" ] || return 0
+  if cmp -s "$src" "$dest"; then
+    rm -f "$dest"
+    echo_info "Removed $dest"
+    blob_removed=true
+  fi
+}
+
+remove_script_symlinks() {
+  local pattern link
+
+  for pattern in \
+    "/lib/firmware/intel/sof-tplg/sof-rpl-*.tplg" \
+    "/lib/firmware/intel/sof-tplg/sof-rpl-*.tplg.xz" \
+    "/lib/firmware/intel/sof-tplg/sof-rpl-*.tplg.zst" \
+    "/lib/firmware/intel/sof-tplg/sof-adl-max98360a-cs42l42.tplg" \
+    "/lib/firmware/intel/sof-tplg/sof-adl-max98360a-cs42l42.tplg.xz" \
+    "/lib/firmware/intel/sof-tplg/sof-adl-max98360a-cs42l42.tplg.zst"
+  do
+    compgen -G "$pattern" >/dev/null || continue
+    while IFS= read -r link; do
+      [ -L "$link" ] || continue
+      rm -f "$link"
+      echo_info "Removed $link"
+    done < <(compgen -G "$pattern")
+  done
+}
+
+# Quirk UCM files replace the ChromeOS profile this script already installed.
+# Put those stock files back. The distro's original tree is gone either way.
+restore_quirk_ucm() {
+  local dir card src name dest stock_ucm stock_over wrote found
+
+  found=false
+  for dir in conf/quirks/*/ucm/*/; do
+    [ -d "$dir" ] || continue
+    found=true
+  done
+  if ! $found; then
+    return 0
+  fi
+
+  echo_status "Restoring UCM files replaced by board quirks"
+  rm -r /tmp/alsa-ucm-conf-cros &>/dev/null
+  if ! git clone https://github.com/WeirdTreeThing/alsa-ucm-conf-cros \
+    --depth 1 \
+    $([ -n "$OVERRIDE_BRANCH" ] && echo "-b $OVERRIDE_BRANCH") \
+    /tmp/alsa-ucm-conf-cros &>/dev/null; then
+    echo_warning "Could not download alsa-ucm-conf-cros. Board UCM quirks were left in place."
+    return 0
+  fi
+
+  for dir in conf/quirks/*/ucm/*/; do
+    [ -d "$dir" ] || continue
+    card="$(basename "$dir")"
+    for src in "$dir"*; do
+      [ -f "$src" ] || continue
+      name="$(basename "$src")"
+      dest="/usr/share/alsa/ucm2/conf.d/$card/$name"
+      stock_ucm="/tmp/alsa-ucm-conf-cros/ucm2/conf.d/$card/$name"
+      stock_over="/tmp/alsa-ucm-conf-cros/overrides/$card/$name"
+      wrote=false
+      if [ -f "$stock_ucm" ]; then
+        cp "$stock_ucm" "$dest"
+        wrote=true
+      fi
+      if [ -f "$stock_over" ]; then
+        cp "$stock_over" "$dest"
+        wrote=true
+      fi
+      if $wrote; then
+        echo_info "Restored $dest"
+      else
+        remove_shipped_file "$dest"
+      fi
+    done
+  done
+  echo_warning "The ChromeOS UCM profile is still installed. Reinstall alsa-ucm-conf to restore the distro profiles."
+}
+
+remove_audio_fixes() {
+  local input f dir base
+
+  echo_warning "This removes the modprobe configs, WirePlumber fragments, and topology symlinks this script installed."
+  echo -en "${GREEN}Remove audio fixes? [y/N] ${RESET}"
+  read -re input
+  case $input in
+    y | Y) ;;
+    *) return 1 ;;
+  esac
+
+  blob_removed=false
+  for f in conf/avs/*.conf conf/sof/*.conf conf/common/snd-sst.conf; do
+    [ -f "$f" ] || continue
+    remove_shipped_file "/etc/modprobe.d/$(basename "$f")"
+  done
+
+  for f in conf/common/51-*.conf; do
+    [ -f "$f" ] || continue
+    remove_shipped_file "/etc/wireplumber/wireplumber.conf.d/$(basename "$f")"
+  done
+  remove_shipped_file /etc/wireplumber/main.lua.d/51-increase-headroom.lua
+  remove_shipped_file /etc/wireplumber/main.lua.d/51-avs-dmic.lua
+
+  for dir in conf/quirks/*/; do
+    [ -d "$dir" ] || continue
+    for f in "$dir"51-*.conf; do
+      [ -f "$f" ] || continue
+      remove_shipped_file "/etc/wireplumber/wireplumber.conf.d/$(basename "$f")"
+    done
+    for f in "$dir"*.lua; do
+      [ -f "$f" ] || continue
+      base="$(basename "$f")"
+      remove_shipped_file "/etc/wireplumber/scripts/$base"
+      remove_shipped_file "/usr/share/wireplumber/scripts/$base"
+    done
+  done
+
+  remove_script_symlinks
+  remove_matching_blob blobs/adl/sof-adl-rt1019-rt5682.tplg /lib/firmware/intel/sof-tplg/sof-adl-rt1019-rt5682.tplg
+  remove_matching_blob blobs/mtl/sof-mtl-rt5650.tplg /lib/firmware/intel/sof-ace-tplg/sof-mtl-rt5650.tplg
+  remove_matching_blob blobs/mtl/sof-mtl-rt1019-rt5682.tplg /lib/firmware/intel/sof-ace-tplg/sof-mtl-rt1019-rt5682.tplg
+  remove_matching_blob blobs/mdn/fw/sof-rmb.ri /lib/firmware/amd/sof/community/sof-rmb.ri
+  remove_matching_blob blobs/mdn/fw/sof-rmb.ldc /lib/firmware/amd/sof/community/sof-rmb.ldc
+  remove_matching_blob blobs/mdn/tplg/sof-rmb-rt5682s-rt1019.tplg /lib/firmware/amd/sof-tplg/sof-rmb-rt5682s-rt1019.tplg
+  if $blob_removed; then
+    echo_warning "Reinstall sof-firmware to restore the packaged topologies."
+  fi
+
+  restore_quirk_ucm
+  echo_status "Audio fixes removed. Reboot to finish."
+}
+
+invoking_user() {
+  if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
+    echo "$SUDO_USER"
+  elif [ -n "${DOAS_USER:-}" ] && [ "$DOAS_USER" != "root" ]; then
+    echo "$DOAS_USER"
+  elif command -v loginctl >/dev/null 2>&1; then
+    loginctl list-users --no-legend 2>/dev/null | awk '$1 != 0 { print $2; exit }'
+  fi
+}
+
+user_systemctl() {
+  local user="$1"
+  local uid runtime
+  shift
+
+  uid="$(id -u "$user")"
+  runtime="/run/user/$uid"
+  [ -S "$runtime/bus" ] || return 1
+  if command -v runuser >/dev/null 2>&1; then
+    runuser -u "$user" -- env \
+      XDG_RUNTIME_DIR="$runtime" \
+      DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime/bus" \
+      systemctl --user "$@"
+  else
+    su -s /bin/sh "$user" -c "export XDG_RUNTIME_DIR='$runtime' DBUS_SESSION_BUS_ADDRESS='unix:path=$runtime/bus'; systemctl --user $*"
+  fi
+}
+
+clear_audio_state() {
+  local input user home uid
+
+  echo_warning "This deletes saved mixer levels and WirePlumber routes, then restarts PipeWire."
+  echo -en "${GREEN}Clear audio state? [y/N] ${RESET}"
+  read -re input
+  case $input in
+    y | Y) ;;
+    *) return 1 ;;
+  esac
+
+  echo_status "Clearing saved audio state"
+  if [ -f /var/lib/alsa/asound.state ]; then
+    rm -f /var/lib/alsa/asound.state
+    echo_info "Removed /var/lib/alsa/asound.state"
+  fi
+  if command -v alsactl >/dev/null 2>&1; then
+    alsactl init &>/dev/null || true
+  fi
+
+  user="$(invoking_user)"
+  if [ -z "$user" ]; then
+    echo_warning "Could not find a desktop user. Reboot to finish clearing audio state."
+    return 0
+  fi
+
+  home="$(getent passwd "$user" | cut -d: -f6)"
+  uid="$(id -u "$user")"
+  if [ -S "/run/user/$uid/bus" ]; then
+    user_systemctl "$user" stop wireplumber pipewire-pulse pipewire || true
+  fi
+  if [ -d "$home/.local/state/wireplumber" ]; then
+    rm -rf "$home/.local/state/wireplumber"
+    echo_info "Removed $home/.local/state/wireplumber"
+  fi
+  if [ -d "$home/.local/state/pipewire" ]; then
+    rm -rf "$home/.local/state/pipewire"
+    echo_info "Removed $home/.local/state/pipewire"
+  fi
+  if [ -S "/run/user/$uid/bus" ]; then
+    echo_status "Restarting PipeWire for $user"
+    user_systemctl "$user" start pipewire pipewire-pulse wireplumber || true
+  else
+    echo_info "No user session is running. Reboot to finish."
+  fi
+  echo_status "Audio state cleared."
 }
 
 ### MISC FUNCTIONS ###
@@ -392,6 +659,10 @@ install_downstream_tplg() {
     xz -c ${tplg} > ${dest}.xz
   elif [ -f "${dest}.zst" ]; then
     zstd ${tplg} -o ${dest}.zst
+  elif [ -d "$(dirname "${dest}")" ]; then
+    # Remove deletes a topology that matches our blob. Recreate it when the
+    # package directory is present but the file is gone.
+    cp ${tplg} ${dest}
   fi
 }
 
@@ -624,38 +895,54 @@ usage() {
 }
 
 menu() {
-  clear
-  echo -e "${BLUE}WeirdTreeThing Chromebook Audio Script${RESET}"
-  echo -e " ${YELLOW}1) ${GREEN}Install audio fixes${RESET}"
-  echo -e " ${YELLOW}2) ${GREEN}Remove audio fixes${RESET}"
-  echo -e " ${YELLOW}3) ${GREEN}Clear audio state${RESET}"
-  echo -e " ${YELLOW}4) ${GREEN}Collect debugging logs${RESET}"
-  echo -e " ${YELLOW}5) ${GREEN}Exit${RESET}"
+  local opt menu_msg
 
-  echo -en "${BLUE} Selection: ${RESET}"
-  read -re opt
-  case $opt in
+  while true; do
+    clear
+    echo -e "${BLUE}WeirdTreeThing Chromebook Audio Script${RESET}"
+    echo -e " ${YELLOW}1) ${GREEN}Install audio fixes${RESET}"
+    echo -e " ${YELLOW}2) ${GREEN}Remove audio fixes${RESET}"
+    echo -e " ${YELLOW}3) ${GREEN}Clear audio state${RESET}"
+    echo -e " ${YELLOW}4) ${GREEN}Collect debugging logs${RESET}"
+    echo -e " ${YELLOW}5) ${GREEN}Exit${RESET}"
+    if [ -n "$menu_msg" ]; then
+      echo_error "$menu_msg"
+      menu_msg=
+    fi
 
-  1)
-    install_fixes
-    ;;
-  2)
-    echo_error "Currently not implemented"
-    ;;
-  3)
-    echo_error "Currently not implemented"
-    ;;
-  4)
-    echo_error "Currently not implemented"
-    ;;
-  5)
-    exit
-    ;;
-  *)
-    menu
-    ;;
-
-  esac
+    echo -en "${BLUE} Selection: ${RESET}"
+    if ! read -re opt; then
+      echo
+      exit 1
+    fi
+    case $opt in
+    1)
+      install_fixes
+      break
+      ;;
+    2)
+      if remove_audio_fixes; then
+        break
+      fi
+      menu_msg="Cancelled"
+      ;;
+    3)
+      if clear_audio_state; then
+        break
+      fi
+      menu_msg="Cancelled"
+      ;;
+    4)
+      menu_msg="Currently not implemented"
+      ;;
+    5)
+      exit
+      ;;
+    *)
+      menu_msg="Invalid selection"
+      ;;
+    esac
+  done
 }
 
 check_user_is_chud
