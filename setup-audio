@@ -297,9 +297,21 @@ mdn_config() {
 install_ucm() {
   echo_status "Installing UCM configuration"
   rm -r /tmp/alsa-ucm-conf-cros &>/dev/null
+
+  local branch="$OVERRIDE_BRANCH"
+  if [ -z "$branch" ]; then
+    # Distros with alsa-lib < 1.2.12 (e.g. Ubuntu 24.04 noble, 22.04 jammy, Debian 12 bookworm)
+    # do not support UCM Syntax 7 and fail with 'Incompatible syntax 7'.
+    # Fallback to the official old-syntax branch on these distributions.
+    if grep -q -E '(noble|jammy|bookworm)' /etc/os-release 2>/dev/null; then
+      echo_info "Detected distro with ALSA < 1.2.12. Using 'old-syntax' UCM branch for compatibility."
+      branch="old-syntax"
+    fi
+  fi
+
   git clone https://github.com/WeirdTreeThing/alsa-ucm-conf-cros \
   --depth 1 \
-  $([ -n "$OVERRIDE_BRANCH" ] && echo "-b $OVERRIDE_BRANCH") \
+  $([ -n "$branch" ] && echo "-b $branch") \
   /tmp/alsa-ucm-conf-cros &>/dev/null
 
   cp -r /tmp/alsa-ucm-conf-cros/ucm2/* /usr/share/alsa/ucm2/
